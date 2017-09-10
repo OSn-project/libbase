@@ -1,0 +1,4 @@
+Testing dependencies:
+ - unittest-cpp [http://github.com/unittest-cpp/unittest-cpp]
+ - HippoMock [https://github.com/dascandy/hippomocks]
+

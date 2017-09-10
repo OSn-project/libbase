@@ -1,0 +1,2 @@
+ - Be able to test private members such as BStirng->allocated_size
+ - Mock realloc to return NULL so that we can test BString->set on fail.
