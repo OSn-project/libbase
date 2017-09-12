@@ -16,7 +16,7 @@ SUITE(BSList)
 	{
 		BSList *list = new BSList();
 		
-		CHECK_EQUAL(list->first, (void*)NULL);
+		CHECK_EQUAL(list->first_node(), (void*)NULL);
 		
 		delete list;
 	}
@@ -27,7 +27,7 @@ SUITE(BSList)
 		
 		list->add((void *) test_str1);
 		
-		CHECK_EQUAL(list->first->data, test_str1);
+		CHECK_EQUAL(list->first_node()->data, test_str1);
 		
 		delete list;
 	}
@@ -36,13 +36,14 @@ SUITE(BSList)
 	{
 		BSList *list = new BSList();
 		
-		list->first = (BSListNode *) malloc(sizeof(BSListNode));
-		list->first->data = test_str1;
-		list->first->next = NULL;
+		BSListNode *first = (BSListNode *) malloc(sizeof(BSListNode))
+		list->set_first();
+		list->first_node()->data = test_str1;
+		list->first_node()->next = NULL;
 		
 		list->add((void *) test_str2);
 		
-		CHECK(! strcmp((char *) list->first->next->data, test_str2));
+		CHECK(! strcmp((char *) list->first_node()->next->data, test_str2));
 		
 		delete list;
 	}
