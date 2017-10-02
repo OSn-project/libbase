@@ -66,24 +66,24 @@ void  utf8_first(char *src, char *dest, int32 chars)
 	*(dest) = '\0';		// Add a null-terminator to the end.
 }
 
-void  utf8_rest (char *src, char *dest, int32 start)
-{
-	if (start < 0) return;
-}
-
 void  utf8_slice(char *src, char *dest, int32 start, int32 chars)
 {
-	if (start < 0 || chars < 0) return;
+	if (chars <= 0)	{*(dest) = '\0'; return;}
+	if (start <  0)	{*(dest) = '\0'; return;}
 	
 	char *chr = utf8_char_at(src, start);
 	
-	for (int32 count = 0; count < chars && *chr != '\0'; chr++, dest++)
+	for (int32 char_count = 0; char_count < chars && *chr != '\0';)
 	{
-		*dest = *chr;
-		
-		if ((*chr & 0b11000000) != 0b10000000)
+		do
 		{
-			count++;
-		}
+			*dest = *chr;
+
+			chr++, dest++;
+		} while ((*chr & 0b11000000) == 0b10000000);
+		
+		char_count++;
 	}
+	
+	*(dest) = '\0';		// Add a null-terminator to the end.
 }

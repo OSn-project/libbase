@@ -31,24 +31,39 @@ SUITE (utf8)
 		CHECK(utf8_char_at(test_str1, 9) == test_str1 + (sizeof(test_str1) - 1));
 	}
 
-	TEST(utf8_first)
+	TEST(utf8_slice)
 	{
 		char out[64];
 		
-		utf8_first(test_str1, out, 4);
-		
+		utf8_slice(test_str1, out, 0, 4); 
 		CHECK_EQUAL(out, "a✓♞☭");
+
+		utf8_slice(test_str1, out, 5, 3); 
+		CHECK_EQUAL(out, "❄1♫");
+
+		utf8_slice(test_str1, out, 2, 10); 
+		CHECK_EQUAL(out, "♞☭€❄1♫");
 	}
 
-	TEST(utf8_first_NonPositiveLength)
+	TEST(utf8_slice_NonPositiveLength)
 	{
 		char out[64];
-		memset(out, 0xff, 64);
 		
-		utf8_first(test_str1, out, 0);
-		CHECK(! strcmp(out, ""));
+		memset(out, 0xff, 64);
+		utf8_slice(test_str1, out, 0, 0);
+		CHECK_EQUAL(out, "");
 
-		utf8_first(test_str1, out, -16);
-		CHECK(! strcmp(out, ""));
+		memset(out, 0xff, 64);
+		utf8_slice(test_str1, out, 0, -16);
+		CHECK_EQUAL(out, "");
+	}
+
+	TEST(utf8_slice_NegativeStart)
+	{
+		char out[64];
+		
+		memset(out, 0xff, 64);
+		utf8_slice(test_str1, out, -1, 3);
+		CHECK_EQUAL(out, "");
 	}
 }

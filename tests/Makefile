@@ -4,7 +4,7 @@
 TARGET = tests
 LIBS =
 CC = clang++
-CFLAGS = -O0 -g
+CFLAGS = -O0 -g -Wno-c++11-compat-deprecated-writable-strings
 
 UTPP_LIB = /usr/local/lib/libUnitTest++.a
 
@@ -23,7 +23,7 @@ all: default
 	$(CC) -isystem $(HEADERS_DIR) $(CFLAGS) -o $@ -c $<
 
 $(TARGET): $(TEST_CODE)
-	$(CC) $(TEST_SUBJECTS) $(TEST_CODE) main.cpp $(UTPP_LIB) -o $@
+	$(CC) $(TEST_SUBJECTS) $(TEST_CODE) main.cpp $(UTPP_LIB) $(CFLAGS) -o $@
 
 run: $(TARGET)
 	./$(TARGET)
