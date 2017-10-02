@@ -3,15 +3,15 @@
 
 TARGET = tests
 LIBS =
-CC = g++
-CFLAGS = -O0 -Wall
+CC = clang++
+CFLAGS = -O0 -g
 
 UTPP_LIB = /usr/local/lib/libUnitTest++.a
 
 HEADERS_DIR = ../headers/
 
-TEST_SUBJECTS = ../src/bstring.o ../src/bslist.o
-TEST_CODE     = bstring.test.cpp bslist.test.cpp
+TEST_SUBJECTS = ../src/bstring.o ../src/bslist.o ../src/utf8.o
+TEST_CODE     = bstring.test.cpp bslist.test.cpp utf8.test.cpp byteorder.test.cpp
 
 .PHONY: default all clean
 

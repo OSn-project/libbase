@@ -36,14 +36,15 @@ SUITE(BSList)
 	{
 		BSList *list = new BSList();
 		
-		BSListNode *first = (BSListNode *) malloc(sizeof(BSListNode))
-		list->set_first();
-		list->first_node()->data = test_str1;
-		list->first_node()->next = NULL;
+		BSListNode *first = (BSListNode *) malloc(sizeof(BSListNode));
+		first->data = test_str1;
+		list->add_node(first);
 		
 		list->add((void *) test_str2);
 		
-		CHECK(! strcmp((char *) list->first_node()->next->data, test_str2));
+		CHECK(first->next != NULL);				// Check that it's actually added the new node to the list
+		CHECK(first->next->data == test_str2);	// Check that it's filled the node with the data
+		CHECK(first->next->next == NULL);		// Check that it's ended the list properly.
 		
 		delete list;
 	}

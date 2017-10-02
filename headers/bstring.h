@@ -7,7 +7,6 @@
 class BString
 {
 	char   *string;
-	size_t  allocated_size;
 
 public:
 	BString();
@@ -21,21 +20,12 @@ public:
 	int32 length_utf8();
 	
 	const char *c_str();		//! Returns a pointer to the internal buffer. It is recommended that you strdup() this.
-
-private:
-	
-	/* UTF-8 functions */
-	char *__utf8_nextchar(char *start);
-	char *__utf8_char_at(int32 index);
-	void  __utf8_first(char *dest, int32 chars);
-	void  __utf8_rest (char *dest, int32 start);
-	void  __utf8_slice(char *dest, int32 start, int32 chars);
-	int32 __utf8_length(char *start = NULL);		// <- If no pointer is given, this->string is implied.
 };
 
 #endif
 
 /*
+ * int32 utf8_size(int32 from, int32 to);
  * BString *uppercase();
  * BString *lowercase();
  * void append(BString *str);
