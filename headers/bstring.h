@@ -6,28 +6,34 @@
 
 class BString
 {
-	char   *string;
-
+	char  *string;
+	
+	size_t m_size;		// in bytes, excluding the null-terminator. The number will equal the length in characters as long as the string is ASCII. If the string is UTF8, the length can be obtained by calling ->length_utf8().
+	
+	uint32 __reserved1[4];
+	
 public:
 	BString();
 	BString(const char*);
 	
 	~BString();
 	
-	bool set(const char *str);		//! Returns false if allocating memory for the new string failed.
+	bool set(const char *str);	// Returns false if allocating memory for the new string failed.
 	
 	int32 length();
 	int32 length_utf8();
 	
-	const char *c_str();		//! Returns a pointer to the internal buffer. It is recommended that you strdup() this.
+	size_t utf8_size(int32 from, int32 to);		// Returns the size of the string between the two indexes in bytes (minus the null-terminator). The character at the end index is excluded (..gth(3, 5) would count characters 3 and 4)
+
+	BString *uppercase();
+	BString *lowercase();
+	
+	const char *c_str();		// Returns a pointer to the internal buffer. It is recommended that you strdup() this.
 };
 
 #endif
 
 /*
- * int32 utf8_size(int32 from, int32 to);
- * BString *uppercase();
- * BString *lowercase();
  * void append(BString *str);
  * void prepend(BString *str);
  * void insert(BString *str);
