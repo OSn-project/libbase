@@ -125,6 +125,26 @@ SUITE(BString)
 		delete str;
 	}
 	
+	TEST(append)	// Note: we don't test inlines because they're just wrappers around the main function
+	{
+		BString *str = new BString(test_str1);
+		
+		str->append(test_str2, sizeof(test_str2) - 1);
+		
+		CHECK_EQUAL("Hello, world!a✓♞☭€❄1♫", str->c_str());
+		CHECK_EQUAL(str->*member<BString_m_size>::value, sizeof(test_str1) + sizeof(test_str2) - 1);		// Don't ask me how privablic works but it does magic and that's what I need.
+	}
+
+	TEST(prepend)	// Note: we don't test inlines because they're just wrappers around the main function
+	{
+		BString *str = new BString(test_str2);
+		
+		str->prepend(test_str1, sizeof(test_str1) - 1);
+		
+		CHECK_EQUAL("Hello, world!a✓♞☭€❄1♫", str->c_str());
+		CHECK_EQUAL(str->*member<BString_m_size>::value, sizeof(test_str2) + sizeof(test_str1) - 1);		// Don't ask me how privablic works but it does magic and that's what I need.
+	}
+	
 	TEST(uppercase)
 	{
 		BString *str   = new BString (test_str1);
@@ -167,6 +187,12 @@ SUITE(BString)
 		
 		delete str;
 		delete lower;
+	}
+	
+	TEST(char_at_utf8)
+	{
+		BString *str = new BString(test_str2);
+		
 	}
 	
 	TEST(c_str)

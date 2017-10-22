@@ -1,5 +1,5 @@
 # Tests makefile
-# NOTE: unittest-cpp needs to be made with the -DUTPP_USE_PLUS_SIGN=OFF option
+# NOTE: ~unittest-cpp needs to be made with the -DUTPP_USE_PLUS_SIGN=OFF option~ No it doesn't
 
 TARGET = tests
 LIBS =

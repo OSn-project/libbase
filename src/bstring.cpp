@@ -9,6 +9,7 @@
 BString :: BString ()
 {
 	this->string = NULL;
+	this->m_size = 0;
 }
 
 BString :: BString (const char *c_str)
@@ -73,6 +74,41 @@ size_t BString :: utf8_size(int32 from, int32 to)
 	return size;
 }
 
+bool BString :: append(char *str, size_t str_size)
+{
+	this->string = (char *) realloc(this->string, (this->m_size + str_size + 1) * sizeof(char));	// Remember that the sizes don't include the null-terminator to make things easier. That's why we +1 at the end.
+	
+	if (! this->string)
+	{
+		this->m_size = 0;
+		return false;
+	}
+	
+	memcpy(this->string + this->m_size, str, str_size + 1);		// +1 to copy the null-terminator too.
+	
+	this->m_size = this->m_size + str_size + 1;
+	
+	return true;
+}
+
+bool BString :: prepend(char *str, size_t str_size)		// Really isn't too different from append except that we memmove the original string first.
+{
+	this->string = (char *) realloc(this->string, (this->m_size + str_size + 1) * sizeof(char));
+	
+	if (! this->string)
+	{
+		this->m_size = 0;
+		return false;
+	}
+	
+	memmove(this->string + str_size, this->string, this->m_size + 1);		// +1 to copy the null-terminator to the end too.
+	memcpy(this->string, str, str_size);
+	
+	this->m_size = this->m_size + str_size + 1;
+	
+	return true;
+}
+
 BString *BString :: uppercase()
 {
 	char *upper_str = strdup(this->string);
@@ -101,10 +137,4 @@ BString *BString :: lowercase()
 	
 	free(lower_str);	
 	return lower;
-}
-
-
-const char *BString :: c_str ()
-{
-	return (const char *) (this->string ? this->string : "");
 }
