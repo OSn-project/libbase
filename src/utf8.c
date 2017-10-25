@@ -1,13 +1,28 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include "bdefs.h"
 #include "utf8.h"
 
-int32 utf8_length(char *string)
+bool utf8_charcmp(const char *a, const char *b)
+{
+	if (a == NULL || b == NULL) return false;
+	
+	do
+	{
+		if (*a != *b) return false;
+		
+		a++; b++;
+	} while ((*a & 0b11000000) == 0b10000000);	// While the character is a unicode continuation byte.. 
+	
+	return true;
+}
+
+int32 utf8_length(const char *string)
 {
 	if (! string) return 0;
 	uint32 length = 0;
 	
-	for (char *c = string; *c != '\0'; c++)
+	for (char *c = (char *) string; *c != '\0'; c++)
 	{
 		if ((*c & 0b11000000) != 0b10000000)	// If the two leftmost bits of the char aren't 10
 		{

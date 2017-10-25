@@ -12,10 +12,11 @@ BString :: BString ()
 	this->m_size = 0;
 }
 
-BString :: BString (const char *c_str)
+BString :: BString (const char *c_str, bool utf8)
 {
 	this->string = strdup(c_str);
-	
+	this->utf8 = utf8;
+		
 	this->m_size = strlen(this->string);		// Strlen will return a negative value if the string is longer than INT32_MAX but this is unlikley
 }
 
@@ -51,12 +52,14 @@ int32 BString :: length()
 {
 	if (this->string == NULL) return 0;
 	
-	return (int32) this->m_size;
-}
-
-int32 BString :: length_utf8()
-{
-	return utf8_length(this->string);
+	if (this->utf8)
+	{
+		return utf8_length(this->string);
+	}
+	else
+	{
+		return (int32) this->m_size;
+	}
 }
 
 size_t BString :: utf8_size(int32 from, int32 to)
@@ -137,4 +140,71 @@ BString *BString :: lowercase()
 	
 	free(lower_str);	
 	return lower;
+}
+
+int32 BString :: count(char chr)
+{
+	if (this->string == NULL) return 0;
+	int32 count = 0;
+	
+	if (this->utf8)
+	{
+		for (char *c = this->string; *c != '\0'; c = utf8_nextchar(c))
+		{
+			if (*c == chr) count++;
+		}
+	}
+	else
+	{
+		for (char *c = this->string; *c != '\0'; c++)
+		{
+			if (*c == chr) count++;
+		}
+	}
+	
+	return count;
+}
+
+int32 BString :: count_chars(const char *chars)
+{
+	if (this->string == NULL) return 0;
+	int32 count = 0;
+	
+	if (this->utf8)
+	{
+		for (char *str_char = this->string; *str_char != '\0'; str_char = utf8_nextchar(str_char))
+		{
+			for (char *chr = (char *) chars; *chr != '\0'; chr = utf8_nextchar(chr))
+			{
+				if (utf8_charcmp(str_char, chr)) count++;
+			}
+		}
+	}
+	else
+	{
+		for (char *str_char = this->string; *str_char != '\0'; str_char++)		// For each character in the string
+		{
+			for (char *chr = (char *) chars; *chr != '\0'; chr++)		// We loop over each of the characters to count
+			{
+				if (*str_char == *chr) count++;						// and compare the two.
+			}
+		}
+	}
+	
+	return count;
+}
+
+const char *BString :: char_at(int32 index)
+{
+	if (index < 0) index += this->length();
+	if (index > this->length() || index < 0) return "";
+	
+	if (this->utf8)
+	{
+		return utf8_char_at(this->string, index);
+	}
+	else
+	{
+		return &this->string[index];
+	}
 }

@@ -8,6 +8,13 @@ SUITE (utf8)
 {
 	static char test_str1[] = "a✓♞☭€❄1♫";
 	
+	TEST (utf8_charcmp)
+	{
+		REQUIRE CHECK(utf8_charcmp(&test_str1[1], "✓") == true);
+		REQUIRE CHECK(utf8_charcmp("♞", "a") == false);
+		REQUIRE CHECK(utf8_charcmp("", "hello") == false);
+	}
+	
 	TEST(utf8_length)
 	{
 		CHECK(utf8_length(NULL) == 0);
