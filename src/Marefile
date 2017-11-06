@@ -1,0 +1,35 @@
+// Source Marefile
+
+libfile = "libbase.a"
+headers_dir = "../headers/"
+
+targets = {
+	lib = {
+		input   = "utf8.o bstring.o bslist.o"
+		output  = "$(libfile)"
+		command = "ar -rcs $(output) $(input)"
+		
+		cflags = "-Wno-unused-label"
+		
+		files = {
+			"bstring.cpp bslist.cpp" = compile_cpp
+			"utf8.c" = compile_c
+		}
+	}
+	
+	clean = {
+		command = "rm -f *.o $(libfile)"
+	}
+}
+
+compile_cpp = {
+	input   = "$(file)"
+	output  = "$(patsubst %.cpp,%.o,$(file))"
+	command = "clang++ $(cflags) -isystem $(headers_dir) -c $(input) -o $(output)"
+}
+
+compile_c = {
+	input   = "$(file)"
+	output  = "$(patsubst %.c,%.o,$(file))"
+	command = "clang $(cflags) -isystem $(headers_dir) -c $(input) -o $(output)"
+}

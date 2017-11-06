@@ -1,0 +1,6 @@
+<credits>
+	<contributor github="albert-tomanek" email="albert.tomanek@gmail.com">Albert Tomanek</contributor>
+	<file path="include/byteorder.h">
+		<contributor github="Sarvadi">Lane Kulak</contributor>
+	</file>
+</credits>

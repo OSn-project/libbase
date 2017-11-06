@@ -1,0 +1,25 @@
+// Toplevel libbase Marefile
+// Mare can be obtained from https://github.com/craflin/mare
+
+src_dir   = "src/"
+tests_dir = "tests/"
+
+targets = {
+	lib = {
+		command = "mare -C $(src_dir) lib"
+	}
+	
+	tests = {
+		command = {
+			"mare -C $(tests_dir) tests",
+			"mare -C $(tests_dir) run"
+		}		
+	}
+	
+	clean = {
+		command = {
+			"mare -C $(src_dir) clean",
+			"mare -C $(tests_dir) clean"
+		}
+	}
+}
