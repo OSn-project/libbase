@@ -49,6 +49,8 @@ public:
 	
 	int32 count(char chr);					// If you want to count a UTF-8 character then you need to use ->count_chars().
 	int32 count_chars(const char *chr);
+	int32 index_of(char chr);
+	int32 index_of_utf8(const char *chr);
 	
 	const char *char_at(int32 index);
 	
@@ -107,6 +109,7 @@ inline const char *BString :: c_str()
 /*
  * BSList<BString> *split(const char *split_chars);
  * BString *slice(uint32 start, uint32 end);
+ * int32 index_of_str(char *str, size_t size);
  * BString *reverse();
  * void remove(char character);
  * void remove_chars(const char *characters);

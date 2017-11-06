@@ -224,6 +224,40 @@ int32 BString :: count_chars(const char *chars)
 	return count;
 }
 
+int32 BString :: index_of(char chr)
+{
+	int32 index = 0;
+	
+	for (char *c = this->string; *c != chr; c = (this->utf8 ? utf8_nextchar(c) : ++c))
+	{
+		if (*c == '\0')
+		{
+			return -1;
+		}
+		
+		index++;
+	}
+	
+	return index;
+}
+
+int32 BString :: index_of_utf8(const char *chr)
+{
+	int32 index = 0;
+	
+	for (char *c = this->string; utf8_charcmp(c, chr) != true; c = (this->utf8 ? utf8_nextchar(c) : ++c))
+	{
+		if (*c == '\0')
+		{
+			return -1;
+		}
+		
+		index++;
+	}
+	
+	return index;
+}
+
 const char *BString :: char_at(int32 index)
 {
 	if (index < 0) index += this->length();

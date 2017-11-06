@@ -276,9 +276,37 @@ SUITE (BString)
 		BString *str = new BString ("abcabcc♞♞❄♞♫", true);
 		
 		CHECK(str->count_chars("cb♞z") == 8);
-		CHECK(str->count_chars("")    == 0);
+		CHECK(str->count_chars("")     == 0);
 		
 		delete str;
+	}
+	
+	TEST (index_of)
+	{
+		BString *str = new BString ("The quick brown fox jumps over the lazy dog.");
+		
+		CHECK(str->index_of('T')  ==  0);
+		CHECK(str->index_of('m')  == 22);
+		CHECK(str->index_of(';')  == -1);
+		CHECK(str->index_of('\0') == 44);
+
+		CHECK(str->index_of_utf8("я")  == -1);
+
+		delete str;		
+	}
+
+	TEST (index_of_utf8)
+	{
+		BString *str = new BString ("Санкт-Петербургская классическая гимназия 610", true);
+		
+		CHECK(str->index_of_utf8("С")  ==  0);
+		CHECK(str->index_of_utf8("я")  == 18);
+		CHECK(str->index_of_utf8(";")  == -1);
+		CHECK(str->index_of_utf8("")   == 45);
+
+		CHECK(str->index_of('1')  == 43);			// Sorry there's a bit of index_of too.
+		
+		delete str;		
 	}
 	
 	TEST (char_at)

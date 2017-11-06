@@ -20,11 +20,17 @@ targets = {
 	}
 	
 	run = {
+	input=""
+	output=""
 		command = "./$(executable)"
 	}
 	
 	clean = {
 		command = "rm -f *.o $(executable)"
+	}
+	
+	hi = {
+		command="echo hello"
 	}
 }
 
