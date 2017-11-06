@@ -58,7 +58,7 @@ int32 BString :: length()
 	}
 	else
 	{
-		return (int32) this->m_size;
+		return this->m_size;
 	}
 }
 
@@ -98,7 +98,7 @@ bool BString :: prepend(char *str, size_t str_size)		// Really isn't too differe
 {
 	this->string = (char *) realloc(this->string, (this->m_size + str_size + 1) * sizeof(char));
 	
-	if (! this->string)
+	if (! this->string)		// If realloc returns NULL (we have run out of memory), set our size to 0 and return false to signify error.
 	{
 		this->m_size = 0;
 		return false;
@@ -106,6 +106,29 @@ bool BString :: prepend(char *str, size_t str_size)		// Really isn't too differe
 	
 	memmove(this->string + str_size, this->string, this->m_size + 1);		// +1 to copy the null-terminator to the end too.
 	memcpy(this->string, str, str_size);
+	
+	this->m_size = this->m_size + str_size + 1;
+	
+	return true;
+}
+
+bool BString :: insert(char *str, size_t str_size, int32 offset)
+{
+	if (offset < -(this->length()) || offset > this->length()) return false;
+	if (offset < 0) offset += this->length();	// Get rid of negative lengths
+	
+	this->string = (char *) realloc(this->string, (this->m_size + str_size + 1) * sizeof(char));
+
+	if (! this->string)
+	{
+		this->m_size = 0;
+		return false;
+	}
+	
+	char *insert_pos = this->utf8 ? utf8_char_at(this->string, offset) : &this->string[offset];		// Get a pointer to where the string will be inserted.
+	
+	memmove(insert_pos + str_size, insert_pos, this->m_size - (insert_pos - this->string)); 		// We use memmove instead of memcpy because the areas may overlap.
+	memcpy(insert_pos, str, str_size);
 	
 	this->m_size = this->m_size + str_size + 1;
 	
@@ -140,6 +163,13 @@ BString *BString :: lowercase()
 	
 	free(lower_str);	
 	return lower;
+}
+
+bool BString :: equals(char *str, size_t str_size)
+{
+	if (str_size == 0 && this->m_size != 0) return false;
+	
+	return (strncmp(this->string, str, str_size) == 0);
 }
 
 int32 BString :: count(char chr)

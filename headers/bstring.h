@@ -26,7 +26,7 @@ public:
 	
 	bool set(const char *str);	// Returns false if allocating memory for the new string failed.
 	
-	int32 length();
+	int32 length();			// This isn't size_t because otherwise we couldn't do things like -(str->length()) without casting.
 	
 	size_t utf8_size(int32 from, int32 to);		// Returns the size of the string between the two indexes in bytes (minus the null-terminator). The character at the end index is excluded (..gth(3, 5) would count characters 3 and 4)
 	
@@ -36,10 +36,16 @@ public:
 	bool        prepend(char *str, size_t str_size);
 	inline bool prepend(char *str);
 	inline bool prepend(BString *str);
-	bool        insert(BString *str, int32 offset);
+	bool        insert(char *str, size_t str_size, int32 offset);
+	inline bool insert(char *str, int32 offset);
+	inline bool insert(BString *str, int32 offset);
 	
 	BString *uppercase();
 	BString *lowercase();
+	
+	bool        equals(char *str, size_t str_size);
+	inline bool equals(char *str);
+	inline bool equals(BString *str);
 	
 	int32 count(char chr);					// If you want to count a UTF-8 character then you need to use ->count_chars().
 	int32 count_chars(const char *chr);
@@ -71,7 +77,27 @@ inline bool BString :: prepend(BString *str)
 	return this->prepend(str->string, str->m_size);
 }
 
-inline const char *BString :: c_str ()
+inline bool BString :: insert(char *str, int32 offset)
+{
+	return this->insert(str, strlen(str), offset);
+}
+
+inline bool BString :: insert(BString *str, int32 offset)
+{
+	return this->insert(str->string, str->m_size, offset);
+}
+
+inline bool BString :: equals(char *str)
+{
+	return this->equals(str, strlen(str));
+}
+
+inline bool BString :: equals(BString *str)
+{
+	return this->equals(str->string, str->m_size);
+}
+
+inline const char *BString :: c_str()
 {
 	return (const char *) (this->string ? this->string : "");
 }
@@ -87,5 +113,4 @@ inline const char *BString :: c_str ()
  * void strip();
  * bool starts_with(BString *str);
  * bool ends_with(BString *str);
- * char char_at(int32 index);
  */

@@ -147,16 +147,43 @@ SUITE (BString)
 		
 		CHECK_EQUAL("Hello, world!a✓♞☭€❄1♫", str->c_str());
 		CHECK_EQUAL(str->*member<BString_m_size>::value, sizeof(test_str1) + sizeof(test_str2) - 1);		// Don't ask me how privablic works but it does magic and that's what I need.
+		
+		delete str;
 	}
 
-	TEST (prepend)	// Note: we don't test inlines because they're just wrappers around the main function
+	TEST (prepend)
 	{
 		BString *str = new BString(test_str2);
 		
 		str->prepend(test_str1, sizeof(test_str1) - 1);
 		
 		CHECK_EQUAL("Hello, world!a✓♞☭€❄1♫", str->c_str());
-		CHECK_EQUAL(str->*member<BString_m_size>::value, sizeof(test_str2) + sizeof(test_str1) - 1);		// Don't ask me how privablic works but it does magic and that's what I need.
+		CHECK_EQUAL(str->*member<BString_m_size>::value, sizeof(test_str2) + sizeof(test_str1) - 1);
+		
+		delete str;
+	}
+
+	TEST (prepend2)
+	{
+		BString *str = new BString("bcdefgh");
+		
+		str->prepend("a", 1);
+		
+		CHECK_EQUAL("abcdefgh", str->c_str());
+		
+		delete str;
+	}
+
+	TEST (insert)
+	{
+		BString *str = new BString(test_str1);
+		
+		str->insert(test_str2, sizeof(test_str2) - 1, 6);
+		
+		CHECK_EQUAL("Hello,a✓♞☭€❄1♫ world!", str->c_str());
+		CHECK_EQUAL(str->*member<BString_m_size>::value, sizeof(test_str1) + sizeof(test_str2) - 1);
+		
+		delete str;
 	}
 	
 	TEST (uppercase)
@@ -203,6 +230,17 @@ SUITE (BString)
 		delete lower;
 	}
 	
+	TEST (equals)
+	{
+		BString *str = new BString (test_str2);
+		
+		CHECK(str->equals(test_str2, sizeof(test_str2) - 1) == true);
+		CHECK(str->equals(test_str1, sizeof(test_str1) - 1) == false);
+		CHECK(str->equals("", 0) == false);
+		
+		delete str;
+	}
+	
 	TEST (count)
 	{
 		BString *str = new BString ("abcabcc");
@@ -232,7 +270,7 @@ SUITE (BString)
 		
 		delete str;
 	}
-
+	
 	TEST (count_chars_UTF8)
 	{
 		BString *str = new BString ("abcabcc♞♞❄♞♫", true);
@@ -303,7 +341,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str2, true);
 		
-		CHECK(! strcmp(str->c_str(), test_str2));
+		REQUIRE CHECK(! strcmp(str->c_str(), test_str2));
 		
 		delete str;
 	}
