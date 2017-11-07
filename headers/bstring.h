@@ -29,6 +29,9 @@ public:
 	int32 length();			// This isn't size_t because otherwise we couldn't do things like -(str->length()) without casting.
 	
 	size_t utf8_size(int32 from, int32 to);		// Returns the size of the string between the two indexes in bytes (minus the null-terminator). The character at the end index is excluded (..gth(3, 5) would count characters 3 and 4)
+
+	BString **split(char delim);				// Splits the string with the given delimiter and returns a tuple (a null-terminated array of pointers) of new BStrings containing the split string.
+	static void tuple_free(BString **tuple);	// A helper function to free tuples returned by ->split()
 	
 	bool        append(char *str, size_t str_size);		// str_size = the size in bytes minus the null-terminator (like what strlen returns you)
 	inline bool append(char *str);
@@ -49,8 +52,10 @@ public:
 	
 	int32 count(char chr);					// If you want to count a UTF-8 character then you need to use ->count_chars().
 	int32 count_chars(const char *chr);
-	int32 index_of(char chr);
-	int32 index_of_utf8(const char *chr);
+	int32 index_of (char chr, const char *start = NULL);				// Returns the index of the given character or -1 if not found. 
+	int32 index_of_utf8 (const char *chr, const char *start = NULL);
+	int32 offset_of(char chr, const char *start = NULL);				// Like ->index_of() but returns offset in bytes instead characters.
+	int32 offset_of_utf8(const char *chr, const char *start = NULL);
 	
 	const char *char_at(int32 index);
 	

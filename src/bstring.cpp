@@ -224,11 +224,24 @@ int32 BString :: count_chars(const char *chars)
 	return count;
 }
 
-int32 BString :: index_of(char chr)
+int32 BString :: index_of(char chr, const char *start)		// The following three functions are duplicates of this one only with slight alterations.
 {
+	/* Take care of the start pointer */
+	if (! start)
+	{
+		start = this->string;
+	}
+	else
+	{
+		/* Check that the pointer is within our string */
+		
+		if (! (this->string <= start && start < this->string + this->m_size)) return -1;
+	}
+	
+	/* Get the index of the given character */
 	int32 index = 0;
 	
-	for (char *c = this->string; *c != chr; c = (this->utf8 ? utf8_nextchar(c) : ++c))
+	for (char *c = (char *) start; *c != chr; c = (this->utf8 ? utf8_nextchar(c) : ++c))		// const grrrhh
 	{
 		if (*c == '\0')
 		{
@@ -241,11 +254,24 @@ int32 BString :: index_of(char chr)
 	return index;
 }
 
-int32 BString :: index_of_utf8(const char *chr)
+int32 BString :: index_of_utf8(const char *chr, const char *start)
 {
+	/* Take care of the start pointer */
+	if (! start)
+	{
+		start = this->string;
+	}
+	else
+	{
+		/* Check that the pointer is within our string */
+		
+		if (! (this->string <= start && start < this->string + this->m_size)) return -1;
+	}
+	
+	/* Get the index of the given character */
 	int32 index = 0;
 	
-	for (char *c = this->string; utf8_charcmp(c, chr) != true; c = (this->utf8 ? utf8_nextchar(c) : ++c))
+	for (char *c = (char *) start; utf8_charcmp(c, chr) != true; c = (this->utf8 ? utf8_nextchar(c) : ++c))
 	{
 		if (*c == '\0')
 		{
@@ -256,6 +282,66 @@ int32 BString :: index_of_utf8(const char *chr)
 	}
 	
 	return index;
+}
+
+int32 BString :: offset_of(char chr, const char *start)
+{
+	/* Take care of the start pointer */
+	if (! start)
+	{
+		start = this->string;
+	}
+	else
+	{
+		/* Check that the pointer is within our string */
+		
+		if (! (this->string <= start && start < this->string + this->m_size)) return -1;
+	}
+	
+	/* Get the offset of the given character */
+	int32 offset = 0;
+	
+	for (char *c = (char *) start; *c != chr; c++)
+	{
+		if (*c == '\0')
+		{
+			return -1;
+		}
+		
+		offset++;
+	}
+	
+	return offset;
+}
+
+int32 BString :: offset_of_utf8(const char *chr, const char *start)
+{
+	/* Take care of the start pointer */
+	if (! start)
+	{
+		start = this->string;
+	}
+	else
+	{
+		/* Check that the pointer is within our string */
+		
+		if (! (this->string <= start && start < this->string + this->m_size)) return -1;
+	}
+	
+	/* Get the offset of the given character */
+	int32 offset = 0;
+	
+	for (char *c = (char *) start; utf8_charcmp(c, chr) != true; c++)
+	{
+		if (*c == '\0')
+		{
+			return -1;
+		}
+		
+		offset++;
+	}
+	
+	return offset;
 }
 
 const char *BString :: char_at(int32 index)

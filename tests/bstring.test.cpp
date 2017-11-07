@@ -290,12 +290,23 @@ SUITE (BString)
 		CHECK(str->index_of(';')  == -1);
 		CHECK(str->index_of('\0') == 44);
 
-		CHECK(str->index_of_utf8("я")  == -1);
+		CHECK(str->index_of_utf8("я") == -1);
+		CHECK(str->index_of('a', test_str1) == -1);	// Check that the function catches an out-of-bounds start pointer.
 
 		delete str;		
 	}
 
-	TEST (index_of_utf8)
+	TEST (index_of_EmptyString)
+	{
+		BString *str = new BString ("");
+		
+		CHECK(str->index_of('T') == -1);
+		CHECK(str->index_of_utf8("и") == -1);
+
+		delete str;		
+	}
+
+	TEST (index_of_UTF8)
 	{
 		BString *str = new BString ("Санкт-Петербургская классическая гимназия 610", true);
 		
@@ -304,8 +315,39 @@ SUITE (BString)
 		CHECK(str->index_of_utf8(";")  == -1);
 		CHECK(str->index_of_utf8("")   == 45);
 
-		CHECK(str->index_of('1')  == 43);			// Sorry there's a bit of index_of too.
+		CHECK(str->index_of('1')  == 43);
+		CHECK(str->index_of_utf8("П", test_str1) == -1);	// Check that the function catches an out-of-bounds start pointer.
+	
+		delete str;		
+	}
+	
+	TEST (offset_of)
+	{
+		BString *str = new BString ("The quick brown fox jumps over the lazy dog.");
 		
+		CHECK(str->offset_of('T')  ==  0);
+		CHECK(str->offset_of('m')  == 22);
+		CHECK(str->offset_of(';')  == -1);
+		CHECK(str->offset_of('\0') == 44);
+
+		CHECK(str->offset_of_utf8("я") == -1);
+		CHECK(str->offset_of('a', test_str1) == -1);	// Check that the function catches an out-of-bounds start pointer.
+
+		delete str;		
+	}
+
+	TEST (offset_of_UTF8)
+	{
+		BString *str = new BString ("Санкт-Петербургская классическая гимназия 610", true);
+		
+		CHECK(str->offset_of_utf8("С")  ==  0);
+		CHECK(str->offset_of_utf8("я")  == 35);
+		CHECK(str->offset_of_utf8(";")  == -1);
+		CHECK(str->offset_of_utf8("")   == str->*member<BString_m_size>::value);
+
+		CHECK(str->offset_of('1')  == str->*member<BString_m_size>::value - 2);
+		CHECK(str->offset_of_utf8("П", test_str1) == -1);	// Check that the function catches an out-of-bounds start pointer.
+	
 		delete str;		
 	}
 	
