@@ -20,7 +20,8 @@ public:
 	bool utf8;
 	
 	BString();
-	BString(const char* str, bool utf8 = false);
+	BString(const char* str, bool utf8 = false, int32 limit = -1);		// Limit *would* be size_t if it wasn't to be an optional argument which we had to know whether it was unset
+	BString(const BString& str);
 	
 	~BString();
 	
@@ -57,9 +58,13 @@ public:
 	int32 offset_of(char chr, const char *start = NULL);				// Like ->index_of() but returns offset in bytes instead characters.
 	int32 offset_of_utf8(const char *chr, const char *start = NULL);
 	
+	static const char *next(char chr, const char *start);		// Returns a pointer to the next occurence of the given character in the string, or to the null terminator if nonexistent.
+	static const char *next(char chr, BString *start);
+	
 	const char *char_at(int32 index);
 	
 	inline const char *c_str();		// Returns a pointer to the internal buffer. It is recommended that you strdup() this.
+private:
 };
 
 /* Inlines */
@@ -116,9 +121,11 @@ inline const char *BString :: c_str()
  * BString *slice(uint32 start, uint32 end);
  * int32 index_of_str(char *str, size_t size);
  * BString *reverse();
+ * void delete(int32 start, int32 length);
  * void remove(char character);
  * void remove_chars(const char *characters);
  * void strip();
  * bool starts_with(BString *str);
  * bool ends_with(BString *str);
+ * 
  */

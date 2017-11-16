@@ -12,12 +12,29 @@ BString :: BString ()
 	this->m_size = 0;
 }
 
-BString :: BString (const char *c_str, bool utf8)
+BString :: BString (const char *c_str, bool utf8, int32 limit)
 {
-	this->string = strdup(c_str);
-	this->utf8 = utf8;
-		
-	this->m_size = strlen(this->string);		// Strlen will return a negative value if the string is longer than INT32_MAX but this is unlikley
+	if (limit == -1)
+	{
+		this->string = strdup(c_str);
+		this->utf8 = utf8;
+			
+		this->m_size = strlen(this->string);		// Strlen will return a negative value if the string is longer than INT32_MAX but this is unlikely
+	}
+	else
+	{
+		this->string = strndup(c_str, limit);
+		this->utf8 = utf8;
+			
+		this->m_size = (size_t) limit;
+	}
+}
+
+BString :: BString(const BString& str)
+{
+	this->string = strndup(str.string, str.m_size);		// We use strNdup just to be safe
+	this->m_size = str.m_size;
+	this->utf8   = str.utf8;
 }
 
 BString :: ~BString ()
@@ -75,6 +92,40 @@ size_t BString :: utf8_size(int32 from, int32 to)
 	}
 	
 	return size;
+}
+
+BString **BString :: split(char delim)
+{
+	/* First we need to get the number of strings that		*
+	 * the original string will be split into. This is  	*
+	 * just the count of delimiters in the string plus 1.	*/
+	
+	uint32 out_strings = 1 + this->count(delim);
+	
+	/* Allocate the tuple */
+	BString **out = (BString **) calloc(out_strings + 1, sizeof(BString *));		// +1 because it is a null-terminated array.
+	
+	BString **str_ptr = out;											// This points to the current pointer in the tuple that we're creating. We increment it every time the loop iterates.
+	
+	for (const char *c = this->string; *c != '\0'; c = (*c == delim) ? c + 1 : (1 + BString::next(delim, c)))	// 'c + 1' if c is a delimiter so that we keep moving and don't get stuck. If it wasn't for the +1 in '1 + BStr..', so that we skip to the character AFTER the next delimiter.
+	{
+		*str_ptr = new BString(c, this->utf8, this->offset_of(delim, c));
+		str_ptr++;
+	}
+	
+	return out;
+}
+
+void BString :: tuple_free(BString **tuple)
+{
+	if (tuple == NULL) return;
+	
+	for (BString **str = tuple; *str != NULL; str++)
+	{
+		delete *str;
+	}
+	
+	free(tuple);
 }
 
 bool BString :: append(char *str, size_t str_size)
@@ -241,7 +292,7 @@ int32 BString :: index_of(char chr, const char *start)		// The following three f
 	/* Get the index of the given character */
 	int32 index = 0;
 	
-	for (char *c = (char *) start; *c != chr; c = (this->utf8 ? utf8_nextchar(c) : ++c))		// const grrrhh
+	for (char *c = (char *) start; *c != chr; c = (this->utf8 ? utf8_nextchar(c) : c + 1))		// const grrrhh
 	{
 		if (*c == '\0')
 		{
@@ -271,7 +322,7 @@ int32 BString :: index_of_utf8(const char *chr, const char *start)
 	/* Get the index of the given character */
 	int32 index = 0;
 	
-	for (char *c = (char *) start; utf8_charcmp(c, chr) != true; c = (this->utf8 ? utf8_nextchar(c) : ++c))
+	for (char *c = (char *) start; utf8_charcmp(c, chr) != true; c = (this->utf8 ? utf8_nextchar(c) : c + 1))
 	{
 		if (*c == '\0')
 		{
@@ -342,6 +393,23 @@ int32 BString :: offset_of_utf8(const char *chr, const char *start)
 	}
 	
 	return offset;
+}
+
+const char *BString :: next(char chr, const char *start)
+{
+	const char *c;
+
+	for (c = start; *c != '\0'; c++)
+	{
+		if (*c == chr) return c;
+	}
+	
+	return c;
+}
+
+const char *BString :: next(char chr, BString *start)
+{
+	return BString::next(chr, start->c_str());
 }
 
 const char *BString :: char_at(int32 index)

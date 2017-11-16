@@ -52,6 +52,40 @@ SUITE (BString)
 		
 		delete str;
 	}
+	
+	TEST (ConstructorWithInitialStringAndSize)
+	{
+		BString *str = new BString(test_str1, false, test_str1_length);
+		
+		CHECK(! strcmp(str->c_str(), test_str1));
+		CHECK(str->*member<BString_m_size>::value == test_str1_length);
+		CHECK(str->utf8 == false);
+		
+		delete str;
+	}
+
+	TEST (ConstructorWithInitialStringAndSizeLength0)
+	{
+		BString *str = new BString(test_str1, false, 0);
+		
+		CHECK(! strcmp(str->c_str(), ""));
+		CHECK(str->*member<BString_m_size>::value == 0);
+		CHECK(str->utf8 == false);
+		
+		delete str;
+	}
+
+	TEST (ConstructorWithInitialBString)
+	{
+		BString  init(test_str1);
+		BString *str = new BString(init);
+		
+		CHECK(! strcmp(str->c_str(), test_str1));
+		CHECK(str->*member<BString_m_size>::value == test_str1_length);
+		CHECK(str->utf8 == false);
+		
+		delete str;
+	}
 
 	TEST (set)
 	{
@@ -136,6 +170,25 @@ SUITE (BString)
 		CHECK_EQUAL( 0, str->utf8_size(-2, 3));
 		CHECK_EQUAL( 0, str->utf8_size( 5, 1));
 		
+		delete str;
+	}
+	
+	TEST (split)
+	{
+		static char *expected_strings[] = {"", "Lor", "em ", "ip", "sum d", "olo", "", "r si", "t amet."};
+		
+		BString  *str = new BString("/Lor/em /ip/sum d/olo//r si/t amet.");
+		BString **sections = str->split('/');
+		
+		char **expected = expected_strings;
+		
+		for (BString **s = sections; *s != NULL; s++)
+		{
+			CHECK_EQUAL((*s)->c_str(), *expected);
+			expected++;
+		}
+		
+		BString::tuple_free(sections);
 		delete str;
 	}
 	
@@ -296,7 +349,7 @@ SUITE (BString)
 		delete str;		
 	}
 
-	TEST (index_of_EmptyString)
+	TEST (index_of_EmptyStr)
 	{
 		BString *str = new BString ("");
 		
@@ -336,6 +389,16 @@ SUITE (BString)
 		delete str;		
 	}
 
+	TEST (offset_of_EmptyStr)
+	{
+		BString *str = new BString ("");
+
+		CHECK(str->offset_of_utf8("я") == -1);
+		CHECK(str->offset_of('a', test_str1) == -1);	// Check that the function catches an out-of-bounds start pointer.
+
+		delete str;		
+	}
+
 	TEST (offset_of_UTF8)
 	{
 		BString *str = new BString ("Санкт-Петербургская классическая гимназия 610", true);
@@ -349,6 +412,14 @@ SUITE (BString)
 		CHECK(str->offset_of_utf8("П", test_str1) == -1);	// Check that the function catches an out-of-bounds start pointer.
 	
 		delete str;		
+	}
+	
+	TEST (next)
+	{
+		CHECK(BString::next('o', test_str1) == test_str1 + 4);
+		CHECK(BString::next('l', BString::next('o', test_str1)) == test_str1 + 10);
+
+		CHECK(BString::next('z', test_str1) == test_str1 + sizeof(test_str1) - 1);
 	}
 	
 	TEST (char_at)
