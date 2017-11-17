@@ -81,6 +81,8 @@ int32 BString :: length()
 
 size_t BString :: utf8_size(int32 from, int32 to)
 {
+	if (from < 0) from += this->length();
+	if (to   < 0) to   += this->length();
 	if (from < 0 || to < 0) return 0;
 	if (from > to) return 0;
 	
@@ -221,6 +223,19 @@ bool BString :: equals(char *str, size_t str_size)
 	if (str_size == 0 && this->m_size != 0) return false;
 	
 	return (strncmp(this->string, str, str_size) == 0);
+}
+
+void BString :: remove(int32 start, int32 length)
+{
+	if (length <= 0) return;
+	if (start  <  0) start += this->length();
+	if (start  <  0) return;					// If start is out of range even after adding the string's length...
+	if (length > this->length() - start) return;	// Check that the length they want to remove isn't longer than the rest of the string.
+	
+	this->m_size -= this->utf8_size(start, length);
+
+	memmove((void *) this->char_at(start), (void *) this->char_at(start + length), this->utf8_size(start + length, this->length()) + 1);	// +1 to copy the null-term too.
+	this->string = (char *) realloc(this->string, this->m_size);		// Shrink the memory because we don't need as much anymore.
 }
 
 int32 BString :: count(char chr)

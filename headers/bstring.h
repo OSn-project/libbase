@@ -51,6 +51,8 @@ public:
 	inline bool equals(char *str);
 	inline bool equals(BString *str);
 	
+	void remove(int32 start, int32 length);
+	
 	int32 count(char chr);					// If you want to count a UTF-8 character then you need to use ->count_chars().
 	int32 count_chars(const char *chr);
 	int32 index_of (char chr, const char *start = NULL);				// Returns the index of the given character or -1 if not found. 
@@ -117,6 +119,8 @@ inline const char *BString :: c_str()
 #endif
 
 /*
+ * void remove_between(int32 start, int32 end);
+ * void remove_between(char *start, char *end);
  * BSList<BString> *split(const char *split_chars);
  * BString *slice(uint32 start, uint32 end);
  * int32 index_of_str(char *str, size_t size);

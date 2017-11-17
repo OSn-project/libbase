@@ -155,16 +155,17 @@ SUITE (BString)
 
 	TEST (utf8_size)
 	{
-		BString *str = new BString(test_str2);
+		BString *str = new BString(test_str2, true);
 		
 		CHECK_EQUAL(6, str->utf8_size(3, 5));
+		CHECK_EQUAL(6, str->utf8_size(-5, -3));
 		
 		delete str;
 	}
 
 	TEST (utf8_size_OutOfBounds)
 	{
-		BString *str = new BString(test_str2);
+		BString *str = new BString(test_str2, true);
 		
 		CHECK_EQUAL(16, str->utf8_size(2, 15));
 		CHECK_EQUAL( 0, str->utf8_size(-2, 3));
@@ -206,7 +207,7 @@ SUITE (BString)
 
 	TEST (prepend)
 	{
-		BString *str = new BString(test_str2);
+		BString *str = new BString(test_str2, true);
 		
 		str->prepend(test_str1, sizeof(test_str1) - 1);
 		
@@ -285,11 +286,44 @@ SUITE (BString)
 	
 	TEST (equals)
 	{
-		BString *str = new BString (test_str2);
+		BString *str = new BString (test_str2, true);
 		
 		CHECK(str->equals(test_str2, sizeof(test_str2) - 1) == true);
 		CHECK(str->equals(test_str1, sizeof(test_str1) - 1) == false);
 		CHECK(str->equals("", 0) == false);
+		
+		delete str;
+	}
+	
+	TEST (remove)
+	{
+		BString *str = new BString (test_str2, true);
+		
+		str->remove(1, 5);
+		
+		CHECK_EQUAL("a1♫", str->c_str());
+		
+		delete str;		
+	}
+
+	TEST (remove_ZeroLength)
+	{
+		BString *str = new BString (test_str2, true);
+		
+		str->remove(1, 0);
+		
+		CHECK_EQUAL(test_str2, str->c_str());
+		
+		delete str;
+	}
+
+	TEST (remove_TooLong)
+	{
+		BString *str = new BString (test_str2, true);
+		
+		str->remove(1, 40);
+		
+		CHECK_EQUAL(test_str2, str->c_str());
 		
 		delete str;
 	}
@@ -319,7 +353,7 @@ SUITE (BString)
 		
 		CHECK(str->count_chars("cbz") == 5);
 		CHECK(str->count_chars("")    == 0);
-//		CHECK(str->count_chars("cc")  == 6);	// Extra goodie! But it's unintended and not required so we don't test it.
+//		CHECK(str->count_chars("cc")  == 6);	// Extra goodie! Putting a letter twice returns twice the count of the letter. But it's unintended and not required so we don't test it.
 		
 		delete str;
 	}
