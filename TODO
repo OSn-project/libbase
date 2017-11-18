@@ -1,3 +1,2 @@
  - Write BString::Bstring and ::set which duplicates other BStrings.
- - Move inlines from bstring.h to bstring_inlines.h
  - Add a comment at the start of each function describing what it does.
