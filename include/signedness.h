@@ -1,8 +1,8 @@
 /*!These functions are used to convert between	*
  * signed and unsigned integers.				*/
 
-#ifndef __BSTRING_H__
-#define __BSTRING_H__
+#ifndef __SIGNEDNESS_H__
+#define __SIGNEDNESS_H__
 
 #include <base.h>
 

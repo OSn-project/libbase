@@ -16,10 +16,10 @@ targets = {
 		}		
 	}
 	
-	clean = {
+	del = {
 		command = {
 			"mare -C $(src_dir) clean",
 			"mare -C $(tests_dir) clean"
-		}
+		}		
 	}
 }

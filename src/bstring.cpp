@@ -2,14 +2,15 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "bdefs.h"
-#include "utf8.h"
-#include "bstring.h"
+#include "../include/bdefs.h"
+#include "../include/utf8.h"
+#include "../include/bstring.h"
 
 BString :: BString ()
 {
-	this->string = NULL;
+	this->string = strdup("");;
 	this->m_size = 0;
+	this->utf8   = false;
 }
 
 BString :: BString (const char *c_str, bool utf8, int32 limit)
@@ -77,6 +78,11 @@ int32 BString :: length()
 	{
 		return this->m_size;
 	}
+}
+
+size_t BString :: size()
+{
+	return this->m_size;
 }
 
 size_t BString :: utf8_size(int32 from, int32 to)
@@ -180,10 +186,10 @@ bool BString :: insert(char *str, size_t str_size, int32 offset)
 	
 	char *insert_pos = this->utf8 ? utf8_char_at(this->string, offset) : &this->string[offset];		// Get a pointer to where the string will be inserted.
 	
-	memmove(insert_pos + str_size, insert_pos, this->m_size - (insert_pos - this->string)); 		// We use memmove instead of memcpy because the areas may overlap.
-	memcpy(insert_pos, str, str_size);
+	memmove(insert_pos + str_size, insert_pos, this->m_size - (insert_pos - this->string) + 1); 		// Create space for the inserted string by shifting the text AFTER the insert position by the length of the string. +1 to shift the null terminator too. We use memmove instead of memcpy because the areas may overlap.
+	memcpy(insert_pos, str, str_size);			// Copy the string into the space that we newly created.
 	
-	this->m_size = this->m_size + str_size + 1;
+	this->m_size = this->m_size + str_size;
 	
 	return true;
 }
@@ -232,10 +238,40 @@ void BString :: remove(int32 start, int32 length)
 	if (start  <  0) return;					// If start is out of range even after adding the string's length...
 	if (length > this->length() - start) return;	// Check that the length they want to remove isn't longer than the rest of the string.
 	
-	this->m_size -= this->utf8_size(start, length);
+	this->remove(this->char_at(start), this->char_at(start + length));
+}
 
-	memmove((void *) this->char_at(start), (void *) this->char_at(start + length), this->utf8_size(start + length, this->length()) + 1);	// +1 to copy the null-term too.
+void BString :: remove(const char *start, const char *end)
+{
+	if (end <= start) return;
+	if (! (this->string <= start && start < this->string + this->m_size)) return;
+	if (! (this->string <  end   && end   < this->string + this->m_size)) return;
+	
+	memmove((void *) start, (void *) end, this->string + this->m_size - end + 1);	// +1 to copy the null-term too.
+
+	this->m_size -= end - start;									// Decrease the size to that of the string after the given range has been removed.
 	this->string = (char *) realloc(this->string, this->m_size);		// Shrink the memory because we don't need as much anymore.
+}
+
+void BString :: remove_char(char chr)
+{
+	if (chr == '\0') return;
+	
+	this->m_size -= this->count(chr);
+	
+	char *new_str = (char *) calloc(this->m_size + 1, sizeof(char));		// +1 for null-term.
+	
+	for (char *p = this->string, *q = new_str; *p != '\0' && q - new_str < this->m_size; p++)
+	{
+		if (*p != chr)
+		{
+			*q = *p;
+			q++;
+		}
+	}
+	
+	free(this->string);
+	this->string = new_str;
 }
 
 int32 BString :: count(char chr)
@@ -361,7 +397,7 @@ int32 BString :: offset_of(char chr, const char *start)
 	{
 		/* Check that the pointer is within our string */
 		
-		if (! (this->string <= start && start < this->string + this->m_size)) return -1;
+		if (! (this->string <= start && start < (this->string + this->m_size) )) return -1;
 	}
 	
 	/* Get the offset of the given character */
@@ -422,9 +458,27 @@ const char *BString :: next(char chr, const char *start)
 	return c;
 }
 
-const char *BString :: next(char chr, BString *start)
+const char *BString :: first(char chr)
 {
-	return BString::next(chr, start->c_str());
+	const char *ret = BString::next(chr, this->c_str());
+	return (*ret != '\0') ? ret : NULL;
+}
+
+int32 BString :: offset_of_ptr(const char *str)
+{
+	if (str == NULL) return -1;
+	if (str == this->string + this->m_size) return this->length();		// If they are pointing to the null-terminator, the correct result should be the string's length. Our loop doesn't account for this though so we have to check for it specifically.
+	
+	int32 offset = 0;
+	
+	for (char *c = this->string; *c != '\0'; c = utf8_nextchar(c))
+	{
+		if (c >= str) return offset;
+		
+		offset++;
+	}
+	
+	return -1;
 }
 
 const char *BString :: char_at(int32 index)
@@ -440,4 +494,86 @@ const char *BString :: char_at(int32 index)
 	{
 		return &this->string[index];
 	}
+}
+
+BString *BString :: load_file(const char *path)
+{
+	FILE *file   = fopen(path, "r");
+	if (! file) return NULL;
+	BString *str = BString::load_file(file);
+	fclose(file);
+
+	return str;
+}
+
+BString *BString :: load_file(FILE *file, int32 bytes, size_t chunk_size)
+{
+	if (bytes == 0) return new BString();			// If we are to read 0 bytes, we just return an empty string.
+	if (file == NULL || bytes < -1) return NULL;	// If they didn't pass us a file pointer, or they want us to read an invalid count of bytes, return NULL.
+	if (chunk_size == 0) return NULL;
+	
+	BString *str = new BString();		// ->string in a new BString is NULL
+	
+	if (bytes == -1)
+	{
+		/* The size of the file is indefinite, and so we can't allocate	*
+		 * the right size buffer in advance. We therefore reallocate	*
+		 * the buffer every 64 bytes that it grows.						*/
+		
+		str->string = (char *) malloc(chunk_size * sizeof(char));	// Allocate the memory at its initial size
+		
+		if (! str->string) return NULL;
+		
+		int32 tmp;
+		int32 chunks = 1;
+		for (str->m_size = 0;; str->m_size++)
+		{
+			tmp = fgetc(file);
+
+			if (str->m_size % chunk_size == chunk_size - 1)	// If we're running out of room in our buffer, make it bigger.
+			{
+				str->string = (char *) realloc(str->string, (chunks + 1) * chunk_size * sizeof(char));
+				chunks++;
+				
+				if (str->string == NULL) return NULL;		// If we ran out of memory return NULL to signify an error.
+			}
+						
+			if (tmp == EOF) break;
+			
+			str->string[str->m_size] = (char) tmp;
+		}
+		
+		str->string[str->m_size] = '\0';
+	}
+	else
+	{
+		str->string = (char *) malloc(bytes + 1 * sizeof(char));
+		fgets(str->string, bytes + 1, file);						// The byte count we are given probably doesn't take the null-terminator into account. We therefore allocate bytes + 1 memory. fgets() reads ONE LESS than the given number bytes (so that there is always room for the null-term), and so we again tell it to read bytes + 1 bytes.
+
+		str->m_size = strnlen(str->string, bytes + 1);			// Even if we did allocate too much memory (ie. if a null byte was reached before the given amount of bytes were read), the redundant memory won't cause any problems and will be freed the next time realloc() is called, since the number of bytes *needed* by the string is stored in ->m_size.
+	}
+	
+	return str;
+}
+
+bool BString :: save_file(const char *path)
+{
+	FILE *file = fopen(path, "w");
+	if (file == NULL) return false;
+	
+	bool rc = this->save_file(file);
+	if (rc == false) return false;
+	
+	fclose(file);
+	
+	return true;
+}
+
+bool BString :: save_file(FILE *file)
+{
+	if (file == NULL) return false;
+	
+	int rc = fwrite(this->string, this->m_size * sizeof(char), 1, file);
+	
+	return (rc == 1);
 }

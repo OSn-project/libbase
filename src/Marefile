@@ -1,24 +1,26 @@
 // Source Marefile
 
+configurations = { Debug, Relase }
+
 libfile = "libbase.a"
 headers_dir = "../headers/"
 
 targets = {
 	lib = {
-		input   = "utf8.o bstring.o bslist.o"
+		input   = "*.o"
 		output  = "$(libfile)"
 		command = "ar -rcs $(output) $(input)"
-		
+
 		cflags = "-Wno-unused-label"
-		
+
+                if configuration == "Debug" {
+                  cflags += "-g"
+                }
+
 		files = {
-			"bstring.cpp bslist.cpp" = compile_cpp
-			"utf8.c" = compile_c
+			"*.cpp" = compile_cpp
+			"*.c" = compile_c
 		}
-	}
-	
-	clean = {
-		command = "rm -f *.o $(libfile)"
 	}
 }
 

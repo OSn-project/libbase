@@ -1,0 +1,18 @@
+ INFO: nweb starting:8080:4321
+ INFO: nweb starting:8080:4447
+ERROR: system call:bind Errno=98 exiting pid=4447
+ INFO: request:GET /bstring.html HTTP/1.1**Host: 192.168.1.47:8080**Connection: keep-alive**Save-Data: on**User-Agent: Mozilla/5.0 (Linux; Android 7.0; Moto G (5) Build/NPP25.137-15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.111 Mobile Safari/537.36**Upgrade-Insecure-Requests: 1**Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8**Accept-Encoding: gzip, deflate**Accept-Language: en-US,en;q=0.9,sk;q=0.8,cs;q=0.7****:1
+ INFO: SEND:bstring.html:1
+ INFO: Header:HTTP/1.1 200 OK
+Server: nweb/23.0
+Content-Length: 2060
+Connection: close
+Content-Type: text/html
+
+:1
+ INFO: request:GET /web-stylesheet/style/style.css HTTP/1.1**Host: 192.168.1.47:8080**Connection: keep-alive**User-Agent: Mozilla/5.0 (Linux; Android 7.0; Moto G (5) Build/NPP25.137-15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.111 Mobile Safari/537.36**Save-Data: on**Accept: text/css,*/*;q=0.1**Referer: http://192.168.1.47:8080/bstring.html**Accept-Encoding: gzip, deflate**Accept-Language: en-US,en;q=0.9,sk;q=0.8,cs;q=0.7****:2
+FORBIDDEN: file extension type not supported:GET /web-stylesheet/style/style.css
+ INFO: request:GET /web-stylesheet/style/logo_60.png HTTP/1.1**Host: 192.168.1.47:8080**Connection: keep-alive**User-Agent: Mozilla/5.0 (Linux; Android 7.0; Moto G (5) Build/NPP25.137-15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.111 Mobile Safari/537.36**Save-Data: on**Accept: image/webp,image/apng,image/*,*/*;q=0.8**Referer: http://192.168.1.47:8080/bstring.html**Accept-Encoding: gzip, deflate**Accept-Language: en-US,en;q=0.9,sk;q=0.8,cs;q=0.7****:3
+NOT FOUND: failed to open file:web-stylesheet/style/logo_60.png
+ INFO: request:GET /favicon.ico HTTP/1.1**Host: 192.168.1.47:8080**Connection: keep-alive**User-Agent: Mozilla/5.0 (Linux; Android 7.0; Moto G (5) Build/NPP25.137-15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.111 Mobile Safari/537.36**Save-Data: on**Accept: image/webp,image/apng,image/*,*/*;q=0.8**Referer: http://192.168.1.47:8080/bstring.html**Accept-Encoding: gzip, deflate**Accept-Language: en-US,en;q=0.9,sk;q=0.8,cs;q=0.7****:4
+NOT FOUND: failed to open file:favicon.ico

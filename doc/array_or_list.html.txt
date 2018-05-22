@@ -1,0 +1,8 @@
+Arrays and lists are each suited for different use-cases,
+and it is therefore important to chose the correct one in order to make your program efficient.
+
+Array advantages:
+ - Good for random access
+
+Linked list advantages:
+ - Good for insertion and removal

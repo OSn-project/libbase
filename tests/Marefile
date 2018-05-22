@@ -4,33 +4,23 @@ utpp_lib = "/usr/local/lib/libUnitTest++.a"
 headers_dir = "../headers/"
 
 executable = "tests"
-test_subjects = "../src/bstring.o ../src/bslist.o ../src/utf8.o"
+test_subjects = "../src/blistnode.o ../src/bptrlist.o ../src/bstring.o ../src/utf8.o"
 
 targets = {
 	tests = {
-		//input   = "utf8.o bstring.o bslist.o"
+		input   = "$(patsubst %.cpp,%.o,$(files))"
 		output  = "tests"
-		command = "clang++ $(test_subjects) $(test_objects) main.cpp $(utpp_lib) $(cflags) -o $(executable)"
-		
+		command = "clang++ $(test_subjects) $(input) $(utpp_lib) $(cflags) -o $(executable)"
+
 		cflags = "-O0 -g -Wno-c++11-compat-deprecated-writable-strings"
-		
-		test_files = {
-			"bstring.test.cpp bslist.test.cpp utf8.test.cpp byteorder.test.cpp" = compile_cpp
+
+		files = {
+			"*.cpp" = compile_cpp
 		}
 	}
-	
+
 	run = {
-	input=""
-	output=""
 		command = "./$(executable)"
-	}
-	
-	clean = {
-		command = "rm -f *.o $(executable)"
-	}
-	
-	hi = {
-		command="echo hello"
 	}
 }
 

@@ -6,13 +6,15 @@
 #include "UnitTest++/UnitTest++.h"
 #include "privablic.h"
 
-#include "../headers/bstring.h"
-#include "../headers/utf8.h"
+#include "../include/bstring.h"
+#include "../include/utf8.h"
 
-//
+/* Privablic */
 
 struct BString_m_size { typedef size_t (BString::*type); };
 template class private_member<BString_m_size, &BString::m_size>;
+
+//
 
 SUITE (BString)
 {
@@ -153,6 +155,15 @@ SUITE (BString)
 		delete str;
 	}
 
+	TEST (size)
+	{
+		BString *str = new BString(test_str2, true);
+		
+		CHECK_EQUAL(str->*member<BString_m_size>::value, str->size());
+		
+		delete str;
+	}
+
 	TEST (utf8_size)
 	{
 		BString *str = new BString(test_str2, true);
@@ -167,7 +178,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str2, true);
 		
-		CHECK_EQUAL(16, str->utf8_size(2, 15));
+		CHECK_EQUAL(16, str->utf8_size( 2,15));
 		CHECK_EQUAL( 0, str->utf8_size(-2, 3));
 		CHECK_EQUAL( 0, str->utf8_size( 5, 1));
 		
@@ -235,7 +246,7 @@ SUITE (BString)
 		str->insert(test_str2, sizeof(test_str2) - 1, 6);
 		
 		CHECK_EQUAL("Hello,a✓♞☭€❄1♫ world!", str->c_str());
-		CHECK_EQUAL(str->*member<BString_m_size>::value, sizeof(test_str1) + sizeof(test_str2) - 1);
+		CHECK_EQUAL(sizeof(test_str1) + sizeof(test_str2) - 2, str->*member<BString_m_size>::value);
 		
 		delete str;
 	}
@@ -297,13 +308,16 @@ SUITE (BString)
 	
 	TEST (remove)
 	{
-		BString *str = new BString (test_str2, true);
+		BString *str  = new BString (test_str2, true);
+		BString *orig = new BString (test_str2, true);
 		
 		str->remove(1, 5);
 		
 		CHECK_EQUAL("a1♫", str->c_str());
+		CHECK_EQUAL(sizeof(test_str2) - 1 - orig->utf8_size(1, 1 + 5), str->*member<BString_m_size>::value);
 		
-		delete str;		
+		delete str;
+		delete orig;
 	}
 
 	TEST (remove_ZeroLength)
@@ -324,6 +338,45 @@ SUITE (BString)
 		str->remove(1, 40);
 		
 		CHECK_EQUAL(test_str2, str->c_str());
+		
+		delete str;
+	}
+
+	TEST (remove_char)
+	{
+		BString *str = new BString (test_str1);
+		
+		str->remove_char('l');
+		
+		CHECK_EQUAL("Heo, word!", str->c_str());
+		CHECK_EQUAL(sizeof(test_str1) - 1 - 3, str->*member<BString_m_size>::value);
+		
+		delete str;
+	}
+
+	TEST (remove_char_NullByte)
+	{
+		/* Calling ::remove_char() with '\0' would remove	*
+		 * the null-terminator, which we don't want.		*/ 
+		
+		BString *str = new BString (test_str1);
+		
+		str->remove_char('\0');
+		
+		CHECK_EQUAL(test_str1, str->c_str());
+		CHECK_EQUAL(sizeof(test_str1) - 1, str->*member<BString_m_size>::value);
+		
+		delete str;
+	}
+
+	TEST (remove_char_EmptyStr)
+	{
+		BString *str = new BString();
+		
+		str->remove_char('F');
+		
+		CHECK_EQUAL("", str->c_str());
+		CHECK_EQUAL(0, str->*member<BString_m_size>::value);
 		
 		delete str;
 	}
@@ -456,11 +509,28 @@ SUITE (BString)
 		CHECK(BString::next('z', test_str1) == test_str1 + sizeof(test_str1) - 1);
 	}
 	
+	TEST (offset_of_ptr)
+	{
+		BString *str = new BString(test_str2, true);
+		
+		CHECK_EQUAL(3, str->offset_of_ptr(str->c_str() + 7));
+		CHECK_EQUAL(0, str->offset_of_ptr(str->c_str()));
+		
+		CHECK_EQUAL(str->length(), str->offset_of_ptr(str->c_str() + str->size()));
+		
+		CHECK_EQUAL(-1, str->offset_of_ptr((const char *) stderr));
+		CHECK_EQUAL(-1, str->offset_of_ptr((const char *) NULL));
+		
+		delete str;
+	}
+
 	TEST (char_at)
 	{
 		BString *str = new BString(test_str1);
 		
 		CHECK_EQUAL(*(str->char_at(4)), 'o');
+		
+		delete str;
 	}
 
 	TEST (char_at_OutOfBounds)
@@ -468,6 +538,8 @@ SUITE (BString)
 		BString *str = new BString(test_str1);
 		
 		CHECK(str->char_at(16) == "");
+		
+		delete str;
 	}
 
 	TEST (char_at_Negative)
@@ -475,6 +547,8 @@ SUITE (BString)
 		BString *str = new BString(test_str1);
 		
 		CHECK_EQUAL(*(str->char_at(-1)), '!');
+		
+		delete str;
 	}
 
 	TEST (char_at_NegativeOutOfBounds)
@@ -482,6 +556,8 @@ SUITE (BString)
 		BString *str = new BString(test_str1);
 		
 		CHECK(str->char_at(-44) == "");
+		
+		delete str;
 	}
 
 	TEST (char_at_UTF8)
@@ -489,6 +565,8 @@ SUITE (BString)
 		BString *str = new BString(test_str2, true);
 		
 		CHECK(utf8_charcmp(str->char_at(4), "€"));
+		
+		delete str;
 	}
 
 	TEST (char_at_UF8_OutOfBounds)
@@ -496,6 +574,8 @@ SUITE (BString)
 		BString *str = new BString(test_str2, true);
 		
 		CHECK(str->char_at(16) == "");
+		
+		delete str;
 	}
 
 	TEST (char_at_UF8_Negative)
@@ -503,6 +583,8 @@ SUITE (BString)
 		BString *str = new BString(test_str2, true);
 		
 		CHECK(utf8_charcmp(str->char_at(-1), "♫"));
+		
+		delete str;
 	}
 
 	TEST (char_at_UF8_NegativeOutOfBounds)
@@ -510,6 +592,8 @@ SUITE (BString)
 		BString *str = new BString(test_str2, true);
 		
 		CHECK(str->char_at(-44) == "");
+		
+		delete str;
 	}
 	
 	TEST (c_str)
@@ -519,5 +603,73 @@ SUITE (BString)
 		REQUIRE CHECK(! strcmp(str->c_str(), test_str2));
 		
 		delete str;
+	}
+	
+	/*TEST (load_file_FromPath)		// The test doesn't work but it's a wrapper function anyway.
+	{
+		char path[] = "somefilepath";
+		MockRepository mocks;
+		BString *bstr = mocks.Mock<BString>();
+		
+		mocks.ExpectCallFunc(fopen).With(path, "r").Return((FILE *) 0xff00ff00);
+		//mocks.ExpectCallFunc(&BString::load_file).Return((BString *) 0x12345678);
+		//mocks.ExpectCallOverload(bstr, (BString* (BString::*)(FILE *, int32, size_t))&BString::load_file).Return((BString *) 0x12345678);
+		mocks.ExpectCallFunc(fclose);
+		BString *str = BString::load_file(path);
+		
+		CHECK_EQUAL("", str->c_str());
+		
+		delete str;
+	}*/
+
+	TEST (load_file)
+	{
+		FILE *file = fmemopen(test_str1, sizeof(test_str1), "r");
+		
+		BString *str = BString::load_file(file, 5);
+		
+		CHECK_EQUAL("Hello", str->c_str());
+		CHECK_EQUAL(5, str->*member<BString_m_size>::value);
+		
+		delete str;
+		fclose(file);
+	}
+
+	TEST (load_file_ZeroBytes)
+	{
+		FILE *file = fmemopen(test_str1, sizeof(test_str1), "r");
+		
+		BString *str = BString::load_file(file, 0);
+		
+		CHECK_EQUAL("", str->c_str());
+		
+		delete str;
+		fclose(file);
+	}
+
+	TEST (load_file_IndefiniteSize)
+	{
+		char test_str[] = "Санкт-Петербургская классическая гимназия";
+		FILE *file = fmemopen(test_str, sizeof(test_str) - 1, "r");
+		
+		BString *str = BString::load_file(file, -1, 8);
+		
+		CHECK_EQUAL(test_str, str->c_str());
+		CHECK_EQUAL(strlen(test_str), str->*member<BString_m_size>::value);
+		
+		delete str;
+		fclose(file);
+	}
+	
+	TEST (save_file)
+	{
+		MockRepository mocks;
+		
+		BString str("1234567890");
+		FILE *file = (FILE *) 0xba5eba11;
+		
+		mocks.ExpectCallFunc(fwrite).With(str.c_str(), str.*member<BString_m_size>::value, 1, file).Return(1);
+		
+		str.save_file(file);
 	}
 }

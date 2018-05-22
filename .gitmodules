@@ -1,0 +1,6 @@
+[submodule "doc/html-template"]
+	path = doc/html-template
+	url = https://github.com/OSn-project/html-template.git
+[submodule "bstring"]
+	path = bstring
+	url = https://github.com/OSn-project/bstring.git

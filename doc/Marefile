@@ -1,0 +1,12 @@
+include "$(root)/tools.mare"
+include "$(root)/doc/rules.mare"
+
+email = "electron826@gmail.com"
+
+targets = {
+	doc = {
+		input   = "*.md.txt"
+		output  = "$(patsubst %.html.txt,%.html,$(inputs))"
+		command = ""
+	}
+}

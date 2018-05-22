@@ -2,7 +2,7 @@
 #include <string.h>
 #include "UnitTest++/UnitTest++.h"
 
-#include "../headers/utf8.h"
+#include "../include/utf8.h"
 
 SUITE (utf8)
 {

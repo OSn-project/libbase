@@ -2,8 +2,8 @@
 #include <string.h>
 #include <UnitTest++/UnitTest++.h>
 
-#include "../headers/bdefs.h"
-#include "../headers/byteorder.h"
+#include "../include/bdefs.h"
+#include "../include/byteorder.h"
 
 SUITE(Byteorder)
 {	
