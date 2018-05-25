@@ -4,7 +4,7 @@
 #define __B_UTF8_H__
 
 #include <stdbool.h>
-#include "bdefs.h"
+#include "osndef.h"
 
 #ifdef __cplusplus
 extern "C" {

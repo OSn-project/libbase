@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "bdefs.h"
+#include "osndef.h"
 
 class BString
 {

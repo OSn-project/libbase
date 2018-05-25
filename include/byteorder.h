@@ -9,7 +9,7 @@
 #ifndef __BYTEORDER_H__
 #define __BYTEORDER_H__
 
-#include "bdefs.h"
+#include "osndef.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <UnitTest++/UnitTest++.h>
 
-#include "../include/bdefs.h"
+#include "../include/osndef.h"
 #include "../include/byteorder.h"
 
 SUITE(Byteorder)

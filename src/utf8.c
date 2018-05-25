@@ -1,6 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
-#include "../include/bdefs.h"
+#include "../include/osndef.h"
 #include "../include/utf8.h"
 
 bool utf8_charcmp(const char *a, const char *b)

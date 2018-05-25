@@ -1,4 +1,3 @@
- - Tests for BString::load_file and ::save_file where fopen() returns NULL.
- - snprintf-style format function.
- - Write BString::Bstring and ::set which duplicates other BStrings.
- - Add a comment at the start of each function describing what it does.
+ - Move all headers into `include/base` and remove `b` from beginning
+ - FIX MAREFILE
+ - Wrap bstrlib in BString

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "../include/bdefs.h"
+#include "../include/osndef.h"
 #include "../include/utf8.h"
 #include "../include/bstring.h"
 

@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 
-#include "../include/bdefs.h"
+#include "../include/osndef.h"
 #include "../include/bptrlist.h"
 
 BVoidPtrList :: BVoidPtrList()

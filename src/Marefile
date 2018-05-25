@@ -6,32 +6,21 @@ libfile = "libbase.a"
 headers_dir = "../headers/"
 
 targets = {
-	lib = {
+	lib = cppStaticLibrary + {
 		input   = "*.o"
 		output  = "$(libfile)"
 		command = "ar -rcs $(output) $(input)"
+		
+		buildDir = "."
+		cppFlags = "-Wno-unused-label"
 
-		cflags = "-Wno-unused-label"
-
-                if configuration == "Debug" {
-                  cflags += "-g"
-                }
+		if configuration == "Debug" {
+			cppFlags += "-g"
+		}
 
 		files = {
-			"*.cpp" = compile_cpp
-			"*.c" = compile_c
+			"*.cpp" = cppSource
+			"*.c"   = cSource
 		}
 	}
-}
-
-compile_cpp = {
-	input   = "$(file)"
-	output  = "$(patsubst %.cpp,%.o,$(file))"
-	command = "clang++ $(cflags) -isystem $(headers_dir) -c $(input) -o $(output)"
-}
-
-compile_c = {
-	input   = "$(file)"
-	output  = "$(patsubst %.c,%.o,$(file))"
-	command = "clang $(cflags) -isystem $(headers_dir) -c $(input) -o $(output)"
 }

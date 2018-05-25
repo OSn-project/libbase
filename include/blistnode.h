@@ -2,7 +2,7 @@
 #define __BASE_LISTNODE_H__
 
 #include <stdlib.h>
-#include "bdefs.h"
+#include "osndef.h"
 
 #define BLISTNODE(P) ((struct BListNode *) P)	// This macro is intended to simplify access to the ->next and ->prev pointers of C structs with a BListNode as their first member. Use of this macro on a C++ class inheriting BListNode is discouraged as other inherited classes may come before it.
 

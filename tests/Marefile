@@ -4,7 +4,7 @@ utpp_lib = "/usr/local/lib/libUnitTest++.a"
 headers_dir = "../headers/"
 
 executable = "tests"
-test_subjects = "../src/blistnode.o ../src/bptrlist.o ../src/bstring.o ../src/utf8.o"
+test_subjects = "../src/*.o"
 
 targets = {
 	tests = {
@@ -15,7 +15,8 @@ targets = {
 		cflags = "-O0 -g -Wno-c++11-compat-deprecated-writable-strings"
 
 		files = {
-			"*.cpp" = compile_cpp
+			"*.test.cpp" = compile_cpp
+			"main.cpp" = compile_cpp
 		}
 	}
 
