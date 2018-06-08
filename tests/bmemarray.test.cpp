@@ -5,24 +5,24 @@
 #include <HippoMocks/hippomocks.h>
 #include "privablic.h"
 
-#include "../include/barray.h"
+#include <base/array.h>
 
 /* Privablic */
 
-struct item_size { typedef size_t (BMemArray::*type); };
-template class private_member<item_size, &BMemArray::item_size>;
+struct PRIV_item_size { typedef size_t (BMemArray::*type); };
+template class private_member<PRIV_item_size, &BMemArray::item_size>;
 
-struct size { typedef uint32 (BMemArray::*type); };
-template class private_member<size, &BMemArray::size>;
+struct PRIV_m_len { typedef uint32 (BMemArray::*type); };
+template class private_member<PRIV_m_len, &BMemArray::m_len>;
 
-struct capacity { typedef uint32 (BMemArray::*type); };
-template class private_member<capacity, &BMemArray::capacity>;
+struct PRIV_capacity { typedef uint32 (BMemArray::*type); };
+template class private_member<PRIV_capacity, &BMemArray::capacity>;
 
-struct data { typedef uint8 *(BMemArray::*type); };
-template class private_member<data, &BMemArray::data>;
+struct PRIV_data { typedef uint8 *(BMemArray::*type); };
+template class private_member<PRIV_data, &BMemArray::data>;
 
-struct grow { typedef void (BMemArray::*type)(); };
-template class private_member<grow, &BMemArray::grow>;
+struct PRIV_grow { typedef void (BMemArray::*type)(); };
+template class private_member<PRIV_grow, &BMemArray::grow>;
 
 SUITE(BMemArray)
 {
@@ -34,11 +34,11 @@ SUITE(BMemArray)
 		
 		BMemArray *arr = new BMemArray(3, 17);
 		
-		CHECK(arr->*member<item_size>::value == 3);		
-		CHECK(arr->*member<size>::value == 0);
-		CHECK(arr->*member<capacity>::value == 17);
+		CHECK(arr->*member<PRIV_item_size>::value == 3);		
+		CHECK(arr->*member<PRIV_m_len>::value == 0);
+		CHECK(arr->*member<PRIV_capacity>::value == 17);
 		
-		CHECK(arr->*member<data>::value == (uint8 *) 0x1234);
+		CHECK(arr->*member<PRIV_data>::value == (uint8 *) 0x1234);
 		
 		mocks.ExpectCallFunc(free).With((void *) 0x1234);
 		delete arr;
@@ -51,29 +51,58 @@ SUITE(BMemArray)
 		uint16 test_data[] = {15, 12000};
 		
 		arr.add(&test_data[0]);	// Give it the address of the value we want to copy
-		CHECK(arr.*member<size>::value == 1);
+		CHECK(arr.*member<PRIV_m_len>::value == 1);
 
 		arr.add(&test_data[1]);
-		CHECK(arr.*member<size>::value == 2);
+		CHECK(arr.*member<PRIV_m_len>::value == 2);
 		
-		CHECK(memcmp(test_data, arr.*member<data>::value, sizeof(test_data)) == 0);
+		CHECK(memcmp(test_data, arr.*member<PRIV_data>::value, sizeof(test_data)) == 0);
 		
 		BArray<short> int_array;
-		short i = 'hi';
-		int_array.add(i);
+		int_array.add(5);
 	}
 	
-	//TEST (grow)
+	TEST (remove)
+	{
+		int32 test_data[] = {0, 1, 2};
+		BMemArray *arr = BMemArray::from_static(&test_data, 3, sizeof(int32));
+
+		arr->remove(1);
+		
+		CHECK(arr->length() == 2);
+		CHECK(*((uint32 *) arr->get_ptr(1)) == 2);
+		
+		delete arr;
+	}
+
+	TEST (from_static)
+	{
+		REQUIRE {
+			int32 test_data[] = {0, 1, 2, 3};
+			BMemArray *arr = BMemArray::from_static(&test_data, 4, sizeof(int32));
+			
+			CHECK(arr->length() == 4);
+
+			CHECK(*((uint32 *) arr->get_ptr(0)) == 0);
+			CHECK(*((uint32 *) arr->get_ptr(1)) == 1);
+			CHECK(*((uint32 *) arr->get_ptr(2)) == 2);
+			CHECK(*((uint32 *) arr->get_ptr(3)) == 3);
+			
+			delete arr;
+		}
+	}
+	
+	//TEST (PRIV_grow)
 	//{
 		//BMemArray arr;
 		
-		//uint32 old_capacity = arr.*member<capacity>::value;
-		//uint32 new_capacity;
+		//uint32 old_PRIV_capacity = arr.*member<PRIV_capacity>::value;
+		//uint32 new_PRIV_capacity;
 		
-		//(arr.*func<grow>::ptr)();
+		//(arr.*func<PRIV_grow>::ptr)();
 		
-		//new_capacity = arr.*member<capacity>::value;
+		//new_PRIV_capacity = arr.*member<PRIV_capacity>::value;
 		
-		//CHECK(old_capacity < new_capacity);
+		//CHECK(old_PRIV_capacity < new_PRIV_capacity);
 	//}
 }

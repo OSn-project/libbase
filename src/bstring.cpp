@@ -4,11 +4,11 @@
 
 #include "../include/osndef.h"
 #include "../include/utf8.h"
-#include "../include/bstring.h"
+#include <base/string.h>
 
 BString :: BString ()
 {
-	this->string = strdup("");;
+	this->string = strdup("");
 	this->m_size = 0;
 	this->utf8   = false;
 }
@@ -64,6 +64,11 @@ bool BString :: set(const char *str)
 	strcpy(this->string, str);
 	
 	return true;
+}
+
+void BString :: clear()
+{
+	this->set(NULL);
 }
 
 int32 BString :: length()
@@ -224,7 +229,7 @@ BString *BString :: lowercase()
 	return lower;
 }
 
-bool BString :: equals(char *str, size_t str_size)
+bool BString :: equals(const char *str, size_t str_size)
 {
 	if (str_size == 0 && this->m_size != 0) return false;
 	
@@ -543,7 +548,7 @@ BString *BString :: load_file(FILE *file, int32 bytes, size_t chunk_size)
 			str->string[str->m_size] = (char) tmp;
 		}
 		
-		str->string[str->m_size] = '\0';
+		str->string[str->m_size] = '\0';		// Add a null-terminator at the end of the string
 	}
 	else
 	{
@@ -576,4 +581,30 @@ bool BString :: save_file(FILE *file)
 	int rc = fwrite(this->string, this->m_size * sizeof(char), 1, file);
 	
 	return (rc == 1);
+}
+
+void BString :: read_line(FILE *file, BString *str)
+{
+	size_t allocated = str->m_size + 64;	// Allocated size
+	int32 tmp;
+	
+	for (char *current = str->string + str->m_size;; current++)
+	{	
+		tmp = fgetc(file);
+		
+		if (tmp == '\n' || tmp == EOF) break;
+		
+		if (str->m_size == allocated)
+		{
+			str->string = (char *) realloc(str->string, str->m_size + 64);
+			allocated += 64;
+		}
+		
+		*current = (char) tmp;
+		str->m_size++;
+	}
+	
+	/* Get rid of any excess space */
+	str->string = (char *) realloc(str->string, str->m_size + 1);
+	str->string[str->m_size] = '\0';	// Add null-terminator
 }

@@ -5,7 +5,7 @@
 #include <HippoMocks/hippomocks.h>
 #include "privablic.h"
 
-#include "../include/blistnode.h"
+#include <base/listnode.h>
 
 #define TEST_NODES 4
 

@@ -28,5 +28,5 @@ targets = {
 compile_cpp = {
 	input   = "$(file)"
 	output  = "$(patsubst %.cpp,%.o,$(file))"
-	command = "clang++ $(cflags) -isystem $(headers_dir) -c $(input) -o $(output)"
+	command = "clang++ $(cflags) -isystem $(headers_dir) -isystem ../include/ -c $(input) -o $(output)"
 }

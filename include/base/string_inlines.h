@@ -30,7 +30,7 @@ inline bool BString :: insert(BString *str, int32 offset)
 	return this->insert(str->string, str->m_size, offset);
 }
 
-inline bool BString :: equals(char *str)
+inline bool BString :: equals(const char *str)
 {
 	return this->equals(str, strlen(str));
 }

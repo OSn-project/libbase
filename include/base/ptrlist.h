@@ -12,7 +12,7 @@
 #ifndef __BASE_PTRLIST_H__
 #define __BASE_PTRLIST_H__
 
-#include "blistnode.h"
+#include <base/listnode.h>
 
 struct BPtrListNode : BListNode
 {

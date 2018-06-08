@@ -1,4 +1,4 @@
-#include "../include/blistnode.h"
+#include <base/listnode.h>
 
 BListNode *BListNode :: last (BListNode *node)
 {

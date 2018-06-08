@@ -29,6 +29,7 @@ public:
 	~BString();
 	
 	bool set(const char *str);	// Returns false if allocating memory for the new string failed.
+	void clear();
 	
 	int32 length();			// This isn't size_t because otherwise we couldn't do things like -(str->length()) without casting.
 	
@@ -51,8 +52,8 @@ public:
 	BString *uppercase();
 	BString *lowercase();
 	
-	bool        equals(char *str, size_t str_size);
-	inline bool equals(char *str);
+	bool        equals(const char *str, size_t str_size);
+	inline bool equals(const char *str);
 	inline bool equals(BString *str);
 	
 	void remove(int32 start, int32 length);				// length is in chars
@@ -83,11 +84,12 @@ public:
 	bool            save_file(FILE *file);
 
 	/* Static helper functions */
+	static void read_line(FILE *file, BString *str);	// Read a line of text into a string. If the string already contains text, then the text is appended. The trailing '\n' character is stripped.
 
 private:
 };
 
-#include "bstring_inlines.h"
+#include "string_inlines.h"
 
 #endif
 

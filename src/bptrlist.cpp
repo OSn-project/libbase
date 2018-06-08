@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "../include/osndef.h"
-#include "../include/bptrlist.h"
+#include <base/ptrlist.h>
 
 BVoidPtrList :: BVoidPtrList()
 {

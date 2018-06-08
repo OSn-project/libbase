@@ -5,7 +5,7 @@
 #include <HippoMocks/hippomocks.h>
 #include "privablic.h"
 
-#include "../include/bptrlist.h"
+#include <base/ptrlist.h>
 
 #define TEST_NODES 4    // Don't make this less than 4 or you'll break the tests
 

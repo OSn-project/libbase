@@ -3,7 +3,6 @@
 configurations = { Debug, Relase }
 
 libfile = "libbase.a"
-headers_dir = "../headers/"
 
 targets = {
 	lib = cppStaticLibrary + {
@@ -19,7 +18,7 @@ targets = {
 		}
 
 		files = {
-			"*.cpp" = cppSource
+			"*.cpp" = cppSource + {cppFlags += "-isystem ../include/"}
 			"*.c"   = cSource
 		}
 	}
