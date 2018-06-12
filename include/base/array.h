@@ -63,9 +63,14 @@ public:
 		return ((T*) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
 	}
 		
-	inline void add(const T& item)
+	/*inline void add(T& item)
 	{
-		this->add((void *) *item);
+		this->BMemArray::add((void *) &item);
+	}*/
+
+	inline void add(T item)
+	{
+		this->BMemArray::add((void *) &item);
 	}
 	
 	inline bool remove(int32 index)

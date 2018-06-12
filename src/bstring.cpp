@@ -585,7 +585,7 @@ bool BString :: save_file(FILE *file)
 
 void BString :: read_line(FILE *file, BString *str)
 {
-	size_t allocated = str->m_size + 64;	// Allocated size
+	size_t allocated = str->m_size;	// Allocated size
 	int32 tmp;
 	
 	for (char *current = str->string + str->m_size;; current++)

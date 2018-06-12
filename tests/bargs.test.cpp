@@ -18,7 +18,7 @@ SUITE(BMemArray)
 {
 	struct BArgs::Option options_a[] = {
 		{"strict",   0, (char **) 0x73747269},
-		{"file",   'f', (char **) 0x66696c65},
+		{"output", 'o', (char **) 0x66696c65},
 		{NULL, 0, NULL}
 	};
 
@@ -41,21 +41,23 @@ SUITE(BMemArray)
 	TEST (parse)
 	{
 		int   argc   = 4;
-		char *argv[] = {"/bin/cat", "pos1", "--file=my--file=.txt=", "pos2"};
+		char *argv[] = {"/bin/cat", "pos1", "--file=my--file=.txt=", "pos2", "-s", "-short1"};
 		
 		struct
 		{
 			char *filename;
+			char *short1;
 		} vals;
 		
 		struct BArgs::Option my_options[] = {
-			//{"strict",   0, 0x73747269},
 			{"file",   'f', &vals.filename},
+			{"short1", 's', &vals.short1},
 			{NULL, 0, NULL}
 		};
 		
 		BArgs::parse(argc, argv, my_options);
 		
 		CHECK_EQUAL(vals.filename, "my--file=.txt=");
+		CHECK_EQUAL(vals.short1, "-short1");
 	}
 }

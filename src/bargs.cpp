@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "../include/base/misc.h"
 #include "../include/base/args.h"
@@ -28,16 +30,17 @@ BArgs::Option *BArgs :: find_by_abbr(char abbr, Option *options)
 	
 	return NULL;
 }
-#include<stdio.h>
-void BArgs :: parse(int argc, char *argv[], Option *options)
+
+char **BArgs :: parse(int argc, char *argv[], Option *options)
 {
-	char *arg;
+	char **positional =  (char **) calloc(argc + 1, sizeof(char *));	// FIXME: There may well be excess room since it not all arguments may be positionals.
+	uint32 pos_count = 0;
 	
 	for (int32 i = 1; i < argc; i++)
 	{
-		arg = argv[i];
+		char *arg = argv[i];
 		
-		if (strncmp(arg, "--", 2) == 0)
+		if (strneq(arg, "--", 2))
 		{
 			/* In the case of a long argument */
 			char *name = arg + 2;
@@ -47,27 +50,57 @@ void BArgs :: parse(int argc, char *argv[], Option *options)
 			
 			char *value = strchr(arg, '=') + 1;
 			
-			if (value != NULL)	// If they've just specified the argument without it's value, we can't set anything.
+			if (value != NULL)	// If they've just specified the argument without its value, we can't set anything.
 			{
 				*option->target = value;
 			}
 		}
-		else if (arg[0] == '-')
+		else if (strneq(arg, "-", 1))
 		{
 			/* In the case of a short argument */
 			Option *option = BArgs::find_by_abbr(arg[1], options);
 			
 			if (option == NULL) goto not_found;
 			
-			*option->target = argv[++i];	// The next argument will be the value
+			{
+				if (strlen(arg) == 2)
+				{
+					/* If the argument is the short name alone,		*
+					 * assume the next argument to be the value:	*
+					 * ./prog -f /tmp/file							*/
+					
+					*option->target = argv[++i];
+				}
+				else if (arg[2] == '=')
+				{
+					/* If there's an '=' after the short name:		*
+					 * ./prog -f=/tmp/file							*/
+					
+					*option->target = arg + 3;
+				}
+				else
+				{
+					/* Complain if they've tried to give us the value		*
+					 * straight after the short name (like getopt allows):	*
+					 * ./prog -f/tmp/file									*/
+					
+					fprintf(stderr, "%s: Please split option name and value with '=':\t-%c=%s\n", argv[0], arg[1], arg + 2);
+				}
+			}
 			
 		}
 		else
 		{
-not_found:
 			/* In the case of a positional argument */
-			printf("Positional: %s\n", arg);
-			continue;
+			positional[pos_count] = arg;				// Add the pointer to the list of positionals.
+			pos_count++;
 		}
+		
+		continue;
+		
+	not_found:
+		fprintf(stderr, "%s: Unexpected argument '%s'\n", argv[0], arg);
 	}
+	
+	return positional;
 }
