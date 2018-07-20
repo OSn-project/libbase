@@ -7,22 +7,22 @@
 
 #include <base/array.h>
 
-/* Privablic */
+/* Private members */
+struct MEMARRAY_item_size { typedef size_t (BMemArray::*type); };
+template class private_member<MEMARRAY_item_size, &BMemArray::item_size>;
 
-struct PRIV_item_size { typedef size_t (BMemArray::*type); };
-template class private_member<PRIV_item_size, &BMemArray::item_size>;
+struct MEMARRAY_m_len { typedef uint32 (BMemArray::*type); };
+template class private_member<MEMARRAY_m_len, &BMemArray::m_len>;
 
-struct PRIV_m_len { typedef uint32 (BMemArray::*type); };
-template class private_member<PRIV_m_len, &BMemArray::m_len>;
+struct MEMARRAY_capacity { typedef uint32 (BMemArray::*type); };
+template class private_member<MEMARRAY_capacity, &BMemArray::capacity>;
 
-struct PRIV_capacity { typedef uint32 (BMemArray::*type); };
-template class private_member<PRIV_capacity, &BMemArray::capacity>;
+struct MEMARRAY_data { typedef uint8 *(BMemArray::*type); };
+template class private_member<MEMARRAY_data, &BMemArray::data>;
 
-struct PRIV_data { typedef uint8 *(BMemArray::*type); };
-template class private_member<PRIV_data, &BMemArray::data>;
-
-struct PRIV_grow { typedef void (BMemArray::*type)(); };
-template class private_member<PRIV_grow, &BMemArray::grow>;
+/* Private methods */
+struct MEMARRAY_grow { typedef void (BMemArray::*type)(); };
+template class private_method<MEMARRAY_grow, &BMemArray::grow>;
 
 SUITE(BMemArray)
 {
@@ -34,11 +34,11 @@ SUITE(BMemArray)
 		
 		BMemArray *arr = new BMemArray(3, 17);
 		
-		CHECK(arr->*member<PRIV_item_size>::value == 3);		
-		CHECK(arr->*member<PRIV_m_len>::value == 0);
-		CHECK(arr->*member<PRIV_capacity>::value == 17);
+		CHECK(arr->*member<MEMARRAY_item_size>::value == 3);		
+		CHECK(arr->*member<MEMARRAY_m_len>::value == 0);
+		CHECK(arr->*member<MEMARRAY_capacity>::value == 17);
 		
-		CHECK(arr->*member<PRIV_data>::value == (uint8 *) 0x1234);
+		CHECK(arr->*member<MEMARRAY_data>::value == (uint8 *) 0x1234);
 		
 		mocks.ExpectCallFunc(free).With((void *) 0x1234);
 		delete arr;
@@ -51,12 +51,12 @@ SUITE(BMemArray)
 		uint16 test_data[] = {15, 12000};
 		
 		arr.add(&test_data[0]);	// Give it the address of the value we want to copy
-		CHECK(arr.*member<PRIV_m_len>::value == 1);
+		CHECK(arr.*member<MEMARRAY_m_len>::value == 1);
 
 		arr.add(&test_data[1]);
-		CHECK(arr.*member<PRIV_m_len>::value == 2);
+		CHECK(arr.*member<MEMARRAY_m_len>::value == 2);
 		
-		CHECK(memcmp(test_data, arr.*member<PRIV_data>::value, sizeof(test_data)) == 0);
+		CHECK(memcmp(test_data, arr.*member<MEMARRAY_data>::value, sizeof(test_data)) == 0);
 		
 		BArray<short> int_array;
 		int_array.add(5);
@@ -92,17 +92,31 @@ SUITE(BMemArray)
 		}
 	}
 	
-	//TEST (PRIV_grow)
+	TEST (grow)
+	{
+		BMemArray arr(sizeof(void *), 1);
+		
+		uint32 old_MEMARRAY_capacity = arr.*member<MEMARRAY_capacity>::value;
+		uint32 new_MEMARRAY_capacity;
+		
+		(arr.*func<MEMARRAY_grow>::ptr)();
+		
+		new_MEMARRAY_capacity = arr.*member<MEMARRAY_capacity>::value;
+		
+		CHECK(old_MEMARRAY_capacity < new_MEMARRAY_capacity);
+	}
+
+	//TEST (MEMARRAY_grow_GrowsFromOne)		// (1 * 3) / 2 => 1, meaning that thearray wouldn't grow. 
 	//{
 		//BMemArray arr;
 		
-		//uint32 old_PRIV_capacity = arr.*member<PRIV_capacity>::value;
-		//uint32 new_PRIV_capacity;
+		//uint32 old_MEMARRAY_capacity = arr.*member<MEMARRAY_capacity>::value;
+		//uint32 new_MEMARRAY_capacity;
 		
-		//(arr.*func<PRIV_grow>::ptr)();
+		//(arr.*func<MEMARRAY_grow>::ptr)();
 		
-		//new_PRIV_capacity = arr.*member<PRIV_capacity>::value;
+		//new_MEMARRAY_capacity = arr.*member<MEMARRAY_capacity>::value;
 		
-		//CHECK(old_PRIV_capacity < new_PRIV_capacity);
+		//CHECK(old_MEMARRAY_capacity < new_MEMARRAY_capacity);
 	//}
 }

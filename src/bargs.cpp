@@ -52,7 +52,7 @@ char **BArgs :: parse(int argc, char *argv[], Option *options)
 			
 			if (value != NULL)	// If they've just specified the argument without its value, we can't set anything.
 			{
-				*option->target = value;
+				*((char **) option->target) = value;
 			}
 		}
 		else if (strneq(arg, "-", 1))
@@ -69,14 +69,14 @@ char **BArgs :: parse(int argc, char *argv[], Option *options)
 					 * assume the next argument to be the value:	*
 					 * ./prog -f /tmp/file							*/
 					
-					*option->target = argv[++i];
+					*((char **) option->target) = argv[++i];
 				}
 				else if (arg[2] == '=')
 				{
 					/* If there's an '=' after the short name:		*
 					 * ./prog -f=/tmp/file							*/
 					
-					*option->target = arg + 3;
+					*((char **) option->target) = arg + 3;
 				}
 				else
 				{

@@ -1,23 +1,20 @@
 /* BString executes different code depending on whether		*
  * the string contains UTF-8 because the non UTF-8 aware 	*
- * code is more efficient. Beware: Some BString methods		*
- * have static counterparts which operate on C-strings.		*/
+ * code is more efficient. Note: Some BString methods have	*
+ * static counterparts which operate on C-strings.			*/
 
 #ifndef __BSTRING_H__
 #define __BSTRING_H__
 
 #include <stdio.h>
 #include <string.h>
-#include "osndef.h"
+#include <osndef.h>
 
 class BString
 {
 protected:
 	char  *string;
-	
 	size_t m_size;		// in bytes, excluding the null-terminator. The number will equal the length in characters as long as the string is ASCII. If the string is UTF8, the length can be obtained by calling ->length() with ->utf8 set to true.
-	
-	uint32 __reserved1[4];
 	
 public:
 	bool utf8;
@@ -28,7 +25,8 @@ public:
 	
 	~BString();
 	
-	bool set(const char *str);	// Returns false if allocating memory for the new string failed.
+	bool set(const char *str);		// Returns false if allocating memory for the new string failed.
+	bool set(const BString *str);
 	void clear();
 	
 	int32 length();			// This isn't size_t because otherwise we couldn't do things like -(str->length()) without casting.
@@ -48,13 +46,17 @@ public:
 	bool        insert(char *str, size_t str_size, int32 offset);
 	inline bool insert(char *str, int32 offset);
 	inline bool insert(BString *str, int32 offset);
+	void        append_c(char c);
 	
 	BString *uppercase();
 	BString *lowercase();
 	
-	bool        equals(const char *str, size_t str_size);
-	inline bool equals(const char *str);
-	inline bool equals(BString *str);
+	static bool equals(BString *a, const char *b, size_t size);
+	static bool equals(BString *a, const char *b);
+	static bool equals(BString *a, BString *b);
+	inline bool equals(const char *b, size_t size);
+	inline bool equals(const char *b);
+	inline bool equals(BString *b);
 	
 	void remove(int32 start, int32 length);				// length is in chars
 	void remove(const char *start, const char *end);
@@ -78,10 +80,10 @@ public:
 	inline const char *c_str();		// Returns a pointer to the internal buffer. It is recommended that you strdup() this.
 
 	/* File access */
-	static BString *load_file(const char *path);
-	static BString *load_file(FILE *file, int32 bytes = -1, size_t chunk_size = 256);	// Creates a BString from the next n bytes in the given file. Stops at null-bytes.
-	bool            save_file(const char *path);		// These return true on success and false on failure
-	bool            save_file(FILE *file);
+	static BString *read_file(const char *path);
+	static BString *read_file(FILE *file, int32 bytes = -1, size_t chunk_size = 256);	// Creates a BString from the next n bytes in the given file. Stops at null-bytes.
+	bool            write_file(const char *path);		// These return true on success and false on failure
+	bool            write_file(FILE *file);
 
 	/* Static helper functions */
 	static void read_line(FILE *file, BString *str);	// Read a line of text into a string. If the string already contains text, then the text is appended. The trailing '\n' character is stripped.
@@ -106,5 +108,7 @@ private:
  * void strip();
  * bool starts_with(BString *str);
  * bool ends_with(BString *str);
+ * bool serialize8(FILE *file);
+ * static BString *unserialize8(FILE *file);
  * 
  */

@@ -21,18 +21,19 @@ struct BListNode
     static void foreach (BListNode *first, void (*func)(BListNode *node));
     static void foreach (BListNode *first, void (*func)(BListNode *node, void *data), void *data);	// Often it is simpler to just use a normal for loop than to use these
     
-    static void       insert(BListNode *add, BListNode *node);  // Insert a node before the given node in a list.
-    static void       append(BListNode *add, BListNode *first);	// Add a node to the END of a list.
-    static void       rip   (BListNode *node);                  // 'Rips' a node out of its list. ->prev and ->next pointers are not cleared.
-    static void       remove(BListNode *node);                  // Remove a node from its list and NULL its ->next and ->prev pointers.
+    static void insert(BListNode *add, BListNode *node);  // Insert a node before the given node in a list.
+    static void append(BListNode *add, BListNode  *first);	// Add a node to the END of a list.
+    static void append(BListNode *add, BListNode **first);	// Takes care of the `*first` pointer being NULL. (in the case of the list being empty)
+    static void rip   (BListNode *node);                  // 'Rips' a node out of its list. ->prev and ->next pointers are not cleared.
+    static void remove(BListNode *node);                  // Remove a node from its list and NULL its ->next and ->prev pointers.
 
     static BListNode *get(BListNode *node, int32 index);	// Get the node at the index relative to this node. Negative indexes are supported. Out-of-range indexes will return NULL.
     static void       replace(BListNode *current, BListNode *target);	// Replace the given node
 	
     /* Circular list functions */
-    static BListNode *circ_last  (BListNode *node, BListNode *first);
+    static BListNode *circ_last  (BListNode *first);
 
-    static BListNode *circ_add  (BListNode *node, BListNode *add);
+    static BListNode *circ_append(BListNode *first, BListNode *add);
 };
 
 #endif

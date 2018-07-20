@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <base/string.h>
 #include <base/cmdapp.h>
 
 BCmdApp :: BCmdApp(BAppCommand *commands)
@@ -14,7 +16,7 @@ BCmdApp :: ~BCmdApp()
 }
 
 
-void BCmdApp :: interactive()
+void BCmdApp :: interactive(FILE *script)
 {
 	BString input;
 	
@@ -34,7 +36,7 @@ void BCmdApp :: interactive()
 		}
 		
 		/* Check whether it's any of the given commands */
-		for (BAppCommand *cmd = this->commands; cmd->name != NULL; cmd++)
+		for (BAppCommand *cmd = this->commands; cmd->function != NULL; cmd++)
 		{
 			if (input.equals(cmd->name))
 			{

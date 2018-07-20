@@ -15,7 +15,7 @@ targets = {
 		cflags = "-O0 -g -Wno-c++11-compat-deprecated-writable-strings"
 
 		files = {
-			"*.test.cpp" = compile_cpp
+			"*.cpp" = compile_cpp
 			"main.cpp" = compile_cpp
 		}
 	}

@@ -1,3 +1,12 @@
-To simplify the utilisation of linked lists, libbase has a BListNode class that should be interited by any class 
-The structure contains the two fundamental values needed to create a dually-linked list, the pointer to the previous and next node.
-It also contains functions for manipulating lists.
+To simplify the utilisation of linked lists, libbase has a `BListNode` struct that should be interited by any class wanting to be linked into a list.
+The `BListNode struct consists of a `next` and a `prev` pointer, pointing to the next and previous nodes in the list, respectively:
+
+	struct BListNode
+	{
+		BListNode *next;
+		BListNode *prev;
+		
+		/* ... */
+	}
+
+It also contains functions that .. simplify manipulation of linked lists for the programmer.

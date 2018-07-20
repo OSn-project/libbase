@@ -4,7 +4,8 @@
 
 #include "../include/osndef.h"
 #include "../include/utf8.h"
-#include <base/string.h>
+#include "../include/base/misc.h"
+#include "../include/base/string.h"
 
 BString :: BString ()
 {
@@ -33,7 +34,7 @@ BString :: BString (const char *c_str, bool utf8, int32 limit)
 
 BString :: BString(const BString& str)
 {
-	this->string = strndup(str.string, str.m_size);		// We use strNdup just to be safe
+	this->string = strndup(str.string, str.m_size);
 	this->m_size = str.m_size;
 	this->utf8   = str.utf8;
 }
@@ -66,9 +67,29 @@ bool BString :: set(const char *str)
 	return true;
 }
 
+bool BString :: set(const BString *str)
+{
+	this->m_size = str->m_size;
+	this->string = (char *) malloc(this->m_size);
+	
+	if (this->string == NULL) goto error;
+	
+	memcpy(this->string, str->string, this->m_size);
+	
+	return true;
+	
+error:
+	this->m_size = 0;
+	this->string = NULL;
+	
+	return false;
+}
+
 void BString :: clear()
 {
-	this->set(NULL);
+	free(this->string);
+	this->string = NULL;
+	this->m_size = 0;
 }
 
 int32 BString :: length()
@@ -199,6 +220,14 @@ bool BString :: insert(char *str, size_t str_size, int32 offset)
 	return true;
 }
 
+void BString :: append_c(char c)
+{
+	this->string = (char *) realloc(this->string, this->m_size + 2);	// +1 for new char; +1 for '\0'
+	this->string[this->m_size] = c;
+	this->string[this->m_size + 1] = '\0';
+	this->m_size++;
+}
+
 BString *BString :: uppercase()
 {
 	char *upper_str = strdup(this->string);
@@ -229,11 +258,21 @@ BString *BString :: lowercase()
 	return lower;
 }
 
-bool BString :: equals(const char *str, size_t str_size)
+bool BString :: equals(BString *str, const char *c_str, size_t size)
 {
-	if (str_size == 0 && this->m_size != 0) return false;
+	return strneq(str->string, c_str, size);
+}
+
+bool BString :: equals(BString *str, const char *c_str)
+{
+	return streq(str->string, c_str);
+}
+
+bool BString :: equals(BString *str_a, BString *str_b)
+{
+	if (str_a->m_size != str_b->m_size) return false;
 	
-	return (strncmp(this->string, str, str_size) == 0);
+	return streq(str_a->string, str_b->string);
 }
 
 void BString :: remove(int32 start, int32 length)
@@ -501,17 +540,17 @@ const char *BString :: char_at(int32 index)
 	}
 }
 
-BString *BString :: load_file(const char *path)
+BString *BString :: read_file(const char *path)
 {
 	FILE *file   = fopen(path, "r");
 	if (! file) return NULL;
-	BString *str = BString::load_file(file);
+	BString *str = BString::read_file(file);
 	fclose(file);
 
 	return str;
 }
 
-BString *BString :: load_file(FILE *file, int32 bytes, size_t chunk_size)
+BString *BString :: read_file(FILE *file, int32 bytes, size_t chunk_size)
 {
 	if (bytes == 0) return new BString();			// If we are to read 0 bytes, we just return an empty string.
 	if (file == NULL || bytes < -1) return NULL;	// If they didn't pass us a file pointer, or they want us to read an invalid count of bytes, return NULL.
@@ -561,12 +600,12 @@ BString *BString :: load_file(FILE *file, int32 bytes, size_t chunk_size)
 	return str;
 }
 
-bool BString :: save_file(const char *path)
+bool BString :: write_file(const char *path)
 {
 	FILE *file = fopen(path, "w");
 	if (file == NULL) return false;
 	
-	bool rc = this->save_file(file);
+	bool rc = this->write_file(file);
 	if (rc == false) return false;
 	
 	fclose(file);
@@ -574,7 +613,7 @@ bool BString :: save_file(const char *path)
 	return true;
 }
 
-bool BString :: save_file(FILE *file)
+bool BString :: write_file(FILE *file)
 {
 	if (file == NULL) return false;
 	
@@ -588,7 +627,7 @@ void BString :: read_line(FILE *file, BString *str)
 	size_t allocated = str->m_size;	// Allocated size
 	int32 tmp;
 	
-	for (char *current = str->string + str->m_size;; current++)
+	while (1)
 	{	
 		tmp = fgetc(file);
 		
@@ -600,7 +639,7 @@ void BString :: read_line(FILE *file, BString *str)
 			allocated += 64;
 		}
 		
-		*current = (char) tmp;
+		str->string[str->m_size] = (char) tmp;
 		str->m_size++;
 	}
 	

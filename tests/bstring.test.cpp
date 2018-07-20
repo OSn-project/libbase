@@ -309,13 +309,15 @@ SUITE (BString)
 	
 	TEST (equals)
 	{
-		BString *str = new BString (test_str2, true);
+		BString str_a("abcdefg");
+		BString str_b("abcdefg");
+		BString str_c("zzzzzzz");
 		
-		CHECK(str->equals(test_str2, sizeof(test_str2) - 1) == true);
-		CHECK(str->equals(test_str1, sizeof(test_str1) - 1) == false);
-		CHECK(str->equals("", 0) == false);
-		
-		delete str;
+		CHECK(BString::equals(&str_a, "abc123", 3) == true);
+		CHECK(BString::equals(&str_a, "abc123") == false);
+
+		CHECK(BString::equals(&str_a, &str_b) == true);
+		CHECK(BString::equals(&str_a, &str_c) == false);
 	}
 	
 	TEST (remove)
@@ -549,7 +551,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str1);
 		
-		CHECK(str->char_at(16) == "");
+		CHECK(str->char_at(16) == '\0');
 		
 		delete str;
 	}
@@ -567,7 +569,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str1);
 		
-		CHECK(str->char_at(-44) == "");
+		CHECK(str->char_at(-44) == '\0');
 		
 		delete str;
 	}
@@ -585,7 +587,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str2, true);
 		
-		CHECK(str->char_at(16) == "");
+		CHECK(str->char_at(16) == '\0');
 		
 		delete str;
 	}
@@ -603,7 +605,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str2, true);
 		
-		CHECK(str->char_at(-44) == "");
+		CHECK(str->char_at(-44) == '\0');
 		
 		delete str;
 	}
@@ -617,28 +619,28 @@ SUITE (BString)
 		delete str;
 	}
 	
-	/*TEST (load_file_FromPath)		// The test doesn't work but it's a wrapper function anyway.
+	/*TEST (read_file_FromPath)		// The test doesn't work but it's a wrapper function anyway.
 	{
 		char path[] = "somefilepath";
 		MockRepository mocks;
 		BString *bstr = mocks.Mock<BString>();
 		
 		mocks.ExpectCallFunc(fopen).With(path, "r").Return((FILE *) 0xff00ff00);
-		//mocks.ExpectCallFunc(&BString::load_file).Return((BString *) 0x12345678);
-		//mocks.ExpectCallOverload(bstr, (BString* (BString::*)(FILE *, int32, size_t))&BString::load_file).Return((BString *) 0x12345678);
+		//mocks.ExpectCallFunc(&BString::read_file).Return((BString *) 0x12345678);
+		//mocks.ExpectCallOverload(bstr, (BString* (BString::*)(FILE *, int32, size_t))&BString::read_file).Return((BString *) 0x12345678);
 		mocks.ExpectCallFunc(fclose);
-		BString *str = BString::load_file(path);
+		BString *str = BString::read_file(path);
 		
 		CHECK_EQUAL("", str->c_str());
 		
 		delete str;
 	}*/
 
-	TEST (load_file)
+	TEST (read_file)
 	{
 		FILE *file = fmemopen(test_str1, sizeof(test_str1), "r");
 		
-		BString *str = BString::load_file(file, 5);
+		BString *str = BString::read_file(file, 5);
 		
 		CHECK_EQUAL("Hello", str->c_str());
 		CHECK_EQUAL(5, str->*member<BString_m_size>::value);
@@ -647,11 +649,11 @@ SUITE (BString)
 		fclose(file);
 	}
 
-	TEST (load_file_ZeroBytes)
+	TEST (read_file_ZeroBytes)
 	{
 		FILE *file = fmemopen(test_str1, sizeof(test_str1), "r");
 		
-		BString *str = BString::load_file(file, 0);
+		BString *str = BString::read_file(file, 0);
 		
 		CHECK_EQUAL("", str->c_str());
 		
@@ -659,12 +661,12 @@ SUITE (BString)
 		fclose(file);
 	}
 
-	TEST (load_file_IndefiniteSize)
+	TEST (read_file_IndefiniteSize)
 	{
 		char test_str[] = "Санкт-Петербургская классическая гимназия";
 		FILE *file = fmemopen(test_str, sizeof(test_str) - 1, "r");
 		
-		BString *str = BString::load_file(file, -1, 8);
+		BString *str = BString::read_file(file, -1, 8);
 		
 		CHECK_EQUAL(test_str, str->c_str());
 		CHECK_EQUAL(strlen(test_str), str->*member<BString_m_size>::value);
@@ -673,7 +675,7 @@ SUITE (BString)
 		fclose(file);
 	}
 	
-	TEST (save_file)
+	TEST (write_file)
 	{
 		MockRepository mocks;
 		
@@ -682,7 +684,7 @@ SUITE (BString)
 		
 		mocks.ExpectCallFunc(fwrite).With(str.c_str(), str.*member<BString_m_size>::value, 1, file).Return(1);
 		
-		str.save_file(file);
+		str.write_file(file);
 	}
 	
 	TEST (read_line)

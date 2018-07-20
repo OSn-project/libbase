@@ -1,0 +1,11 @@
+BTuple
+======
+The name `BTuple` is actually a bit of a misnomer.
+Here the term 'tuple' is used to refer to a null-terminated array of pointers.
+You will never come accross an instance of the BTuple class -- these 'tuples' always have
+the type of `T**`.
+The BTuple class only contains static methods that make manipulating these arrays easier.
+
+Example usage
+-------------
+Example usage of a tuple would be 

@@ -77,7 +77,7 @@ BMemArray *BMemArray :: from_static(void *array, uint32 length, size_t item_size
 
 void BMemArray :: grow()
 {
-	this->capacity = (this->capacity * 3) / 2;		// Grow by 3/2 (https://en.wikipedia.org/wiki/Dynamic_array#Growth_factor)
+	this->capacity = ((this->capacity * 3) / 2) + 1;		// Grow by 3/2 (https://en.wikipedia.org/wiki/Dynamic_array#Growth_factor)
 	
 	this->data = (uint8 *) realloc(this->data, this->capacity * this->item_size);
 }

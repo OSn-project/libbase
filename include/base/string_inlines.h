@@ -30,14 +30,19 @@ inline bool BString :: insert(BString *str, int32 offset)
 	return this->insert(str->string, str->m_size, offset);
 }
 
-inline bool BString :: equals(const char *str)
+inline bool BString :: equals(const char *b, size_t size)
 {
-	return this->equals(str, strlen(str));
+	return BString::BString :: equals(this, b, size);
 }
 
-inline bool BString :: equals(BString *str)
+inline bool BString :: equals(const char *b)
 {
-	return this->equals(str->string, str->m_size);
+	return BString::BString :: equals(this, b);
+}
+
+inline bool BString :: equals(BString *b)
+{
+	return BString::BString :: equals(this, b);
 }
 
 inline const char *BString :: c_str()

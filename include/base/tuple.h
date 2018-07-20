@@ -1,28 +1,14 @@
-/* Wrapper for a null-terminated array of pointers.		*
- * I don't really know whether this is even necessary.	*/
+/* Wrapper for a null-terminated array of pointers. */
 
 #ifndef __BTUPLE_H__
 #define __BTUPLE_H__
 
-#include "bdefs.h"
+#include <osndef.h>
 
-template <typename *T> class BTuple
+class BTuple
 {
-	T **values;
-	
-	size_t length();
-}
-
-template <typename *T> size_t BTuple :: length()
-{
-	size_t length = 0;
-	
-	for (T **current = this->values; *current != NULL; current++)
-	{
-		length++;
-	}
-	
-	return length;
-}
+public:
+	static uint32 length(void **tuple);
+};
 
 #endif

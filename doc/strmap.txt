@@ -1,0 +1,14 @@
+BStrMap
+=======
+The `BStrMap` is a dictionary-like container that can store key-value pairs.
+It does not use hashes (it just compares keys instead) for the sake of simplicity,
+and so it may be a bit slower than a hash map.
+
+Implementation
+--------------
+The key-value pairs are stored in an array of a known size.  
+If a pair is removed, it is marked as free (by setting the `->name` pointer to `NULL`),
+and is then used again whenever a new pair is added.
+
+This saves us from needing to shift half of the array to fill the gap every time a pair is removed,
+since the order of items is not significant in a map.

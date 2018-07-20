@@ -72,6 +72,19 @@ void BListNode :: insert(BListNode *add, BListNode *node)
 	node->prev = add;
 }
 
+void BListNode :: append(BListNode *new_last, BListNode **list)
+{
+	if (*list == NULL)
+	{
+		/* If the list is empty */
+		*list = new_last;
+	}
+	else
+	{
+		BListNode::append(new_last, *list);
+	}
+}
+
 void BListNode :: append(BListNode *new_last, BListNode *node)
 {
 	BListNode *old_last = BListNode::last(node);

@@ -1,3 +1,1 @@
- - Move all headers into `include/base` and remove `b` from beginning
- - FIX MAREFILE
- - Wrap bstrlib in BString
+ - Change BString::append from bool to void
