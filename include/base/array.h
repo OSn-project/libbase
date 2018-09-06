@@ -4,8 +4,9 @@
  * bounds checking or negative indexes -- this	*
  * is left for inheriting classes to do.		*/
 
-// DO NOT USE WITH CLASSES THAT YOU HAVE POINTERS TO. Classes are COPIED into the array.
- 
+// DO NOT USE WITH CLASSES THAT YOU HAVE POINTERS TO. Classes are COPIED into the array and so their address will change.
+// The addresses of elements WILL change as items are inserrted and removed.
+
 #ifndef __BASE_ARRAY_H__
 #define __BASE_ARRAY_H__
 
@@ -33,7 +34,8 @@ public:
 	void clear();
 	
 	/* Manipulation */
-	void  add(void *item);		// Adds (COPIES) an item to the list. Note, the pointer is to the item that will be copied into the array. If the method is given the address of a pointer, the pointer itself will be copied and NOT THE THING THAT IT POINTS TO.	
+	void  add(void *item);		// Adds (COPIES) an item to the list. Note, the pointer is to the item that will be copied into the array. If the method is given the address of a pointer, the pointer itself will be copied and NOT THE THING THAT IT POINTS TO.
+	void *add_new();			// Append memory for a new item and return a pointer to it so that it can be filled/initialized.
 	void  remove(uint32 index);	// Remove an item by its index
 	
 	/* Working with static arrays */
@@ -54,38 +56,34 @@ public:
 	{
 	};
 	
-	inline T& get(int32 index)
+	~BArray()
 	{
-		/* Deal with negative indexes */
-		if (index < 0)
-			index += this->m_len;
-			
+		for (T *current = (T *) this->data; current - (T *) this->data < this->m_len; current++)
+		{
+			current->~T();
+		}
+	}
+	
+	inline T& get(uint32 index)
+	{
 		return ((T*) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
 	}
-		
-	/*inline void add(T& item)
-	{
-		this->BMemArray::add((void *) &item);
-	}*/
 
-	inline void add(T item)
+	inline void add(T const& item)				// The `const&` makes it an immutable reference, meaning that we can even be passed literals. https://stackoverflow.com/a/7701261/6130358
 	{
 		this->BMemArray::add((void *) &item);
 	}
 	
-	inline bool remove(int32 index)
+	inline T *add_new()
 	{
-		/* Deal with negative indexes */
-		if (index < 0)
-			index += this->m_len;
-		
-		/* Check for out of bounds */
-		if (index < 0 || this->m_len < index)
-			return false;
+		return (T *) this->BMemArray::add_new();
+	}
+	
+	inline void remove(uint32 index)
+	{
+		((T *) this->get_ptr(index))->~T();		// Call the destructor on the item without freeing the memory.
 		
 		this->BMemArray::remove(index);
-		
-		return true;
 	}
 };
 

@@ -698,4 +698,18 @@ SUITE (BString)
 		
 		CHECK_EQUAL(str.c_str(), "The quick brown fox jumps over the lazy dog.");
 	}
+	
+	TEST (sprintf)
+	{
+		BString str;
+		char *name = "Jenny\0Rob";
+		
+		sprintf(&str, "%s is %d years old.", name, -443);
+		
+		CHECK(BString::equals(&str, "Jenny is -443 years old."));
+		
+		sprintf(&str, "%+5hd hello", (short) 55);
+		
+		CHECK(BString::equals(&str, "  +55 hello"));
+	}
 }

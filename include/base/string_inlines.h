@@ -1,4 +1,4 @@
-/* Inlines */
+#include <string.h>
 
 inline bool BString :: append(char *str)
 {

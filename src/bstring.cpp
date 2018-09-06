@@ -627,7 +627,7 @@ void BString :: read_line(FILE *file, BString *str)
 	size_t allocated = str->m_size;	// Allocated size
 	int32 tmp;
 	
-	while (1)
+	while (true)
 	{	
 		tmp = fgetc(file);
 		
@@ -646,4 +646,27 @@ void BString :: read_line(FILE *file, BString *str)
 	/* Get rid of any excess space */
 	str->string = (char *) realloc(str->string, str->m_size + 1);
 	str->string[str->m_size] = '\0';	// Add null-terminator
+}
+
+int sprintf(BString *str, const char *format, ...)
+{
+	va_list ap;
+	
+	/* Clear the string if not empty */
+	if (str->m_size != 0)
+		str->clear();
+	
+	/* Open the string as a file stream;	*
+	 * we need to do this so that the size	*
+	 * is not limited.						*/
+	FILE *fp = open_memstream(&str->string, &str->m_size);
+	
+	va_start(ap, format);
+	int rc = vfprintf(fp, format, ap);
+	va_end(ap);
+	
+	fflush(fp);
+	fclose(fp);
+	
+	return rc;
 }

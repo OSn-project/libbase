@@ -57,9 +57,6 @@ SUITE(BMemArray)
 		CHECK(arr.*member<MEMARRAY_m_len>::value == 2);
 		
 		CHECK(memcmp(test_data, arr.*member<MEMARRAY_data>::value, sizeof(test_data)) == 0);
-		
-		BArray<short> int_array;
-		int_array.add(5);
 	}
 	
 	TEST (remove)
@@ -119,4 +116,62 @@ SUITE(BMemArray)
 		
 		//CHECK(old_MEMARRAY_capacity < new_MEMARRAY_capacity);
 	//}
+}
+
+SUITE (BArray)
+{
+	TEST (add)
+	{
+		BArray<short> int_array;
+		int_array.add(5);
+		int_array.add(30000);
+		
+		CHECK(((short *) int_array.get_data())[0] == 5);
+		CHECK(((short *) int_array.get_data())[1] == 30000);
+	}
+	
+	TEST (remove_NoDestructor)
+	{
+		BArray<char> arr;
+		
+		arr.add('a');
+		arr.add('b');
+		arr.add('c');
+		arr.add('d');
+		
+		arr.remove(0);
+		arr.remove(1);
+		
+		CHECK(strncmp((const char *) (arr.*member<MEMARRAY_data>::value), "bd", 2) == 0);
+	}
+	
+	void MOCK_free(void *mem)
+	{
+		return;
+	}
+	
+	TEST (remove_WithDestructor)
+	{
+		struct DestroyMe
+		{
+			void *ptr;
+			
+			~DestroyMe()
+			{
+				MOCK_free(this->ptr);
+			}
+		};
+		
+		MockRepository mocks;
+		BArray<DestroyMe> *arr = new BArray<DestroyMe>();
+		
+		DestroyMe *d = arr->add_new();
+		d->ptr = (void *) 0x6d707472;
+		
+		CHECK(memcmp(arr->*member<MEMARRAY_data>::value, &d->ptr, sizeof(void *)) == 0);		// Check that the first bytes of the array's data are indeed the first bytes of the class that has been added.
+
+		mocks.ExpectCallFunc(MOCK_free).With((void *) 0x6d707472);
+		
+		delete arr;
+	}
 }

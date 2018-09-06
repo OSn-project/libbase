@@ -6,9 +6,9 @@
 #ifndef __BSTRING_H__
 #define __BSTRING_H__
 
-#include <stdio.h>
-#include <string.h>
 #include <osndef.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 class BString
 {
@@ -21,7 +21,7 @@ public:
 	
 	BString();
 	BString(const char* str, bool utf8 = false, int32 limit = -1);		// Limit *would* be size_t if it wasn't to be an optional argument which we had to know whether it was unset
-	BString(const BString& str);
+	BString(const BString& str);										// Copy Constructor
 	
 	~BString();
 	
@@ -87,9 +87,16 @@ public:
 
 	/* Static helper functions */
 	static void read_line(FILE *file, BString *str);	// Read a line of text into a string. If the string already contains text, then the text is appended. The trailing '\n' character is stripped.
-
+	
+public:
+	/* Friends */
+	friend int sprintf(BString *str, const char *format, ...);
+	
 private:
 };
+
+/* Overload sprintf to allow formatted printing to BStrings */
+int sprintf(BString *str, const char *format, ...) __attribute__ ((format (printf, 2, 3)));		// Print printf-formatted text to a BString. Overwrites the original string if not empty.
 
 #include "string_inlines.h"
 

@@ -2,6 +2,7 @@
 #define __BASE_MISC_H__
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

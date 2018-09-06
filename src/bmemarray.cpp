@@ -50,15 +50,30 @@ void BMemArray :: add(void *item)
 	this->m_len++;
 }
 
+void *BMemArray :: add_new()
+{
+	/* Grow if we've run out of room */
+	if (this->m_len == this->capacity)
+	{
+		this->grow();
+	}
+	
+	void *item = &this->data[this->m_len * this->item_size];
+	
+	this->m_len++;
+	
+	return item;
+}
+
 void BMemArray :: remove(uint32 index)
 {
 	void *rem = this->get_ptr(index);
 	
-	memmove(rem, rem + item_size, this->item_size);
+	memmove(rem, (uint8 *) rem + item_size, this->item_size * this->m_len - 1);
 	
 	this->m_len--;
 	
-	/* Shrink if out capacity is excessively large */
+	/* Shrink if our capacity is excessively large */
 	if ((this->m_len * 3) / 2 <= this->capacity)
 	{
 		this->data = (uint8 *) realloc(this->data, (this->m_len * 5) / 4);	// Shrink to 5/4 the occupied size
