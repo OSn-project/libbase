@@ -45,7 +45,7 @@ void BMemArray :: add(void *item)
 	
 	/* Copy the item in */
 	uint8 *dest = &this->data[this->m_len * this->item_size];
-	memcpy(dest, item, this->item_size);
+	memcpy(dest, item, this->item_size);	// !!! Doesn't copy correctly..?
 	
 	this->m_len++;
 }
@@ -78,6 +78,30 @@ void BMemArray :: remove(uint32 index)
 	{
 		this->data = (uint8 *) realloc(this->data, (this->m_len * 5) / 4);	// Shrink to 5/4 the occupied size
 	}
+}
+
+void *BMemArray :: find(bool (*find_func)(void *item))
+{
+	for (void *item = this->data; item < this->data + (this->item_size * this->m_len); item += this->item_size)
+	{
+		if (find_func(item) == true)
+			return item;
+	}
+	
+	/* If not found */
+	return NULL;
+}
+
+void *BMemArray :: find(bool (*find_func)(void *item, void *data), void *data)
+{
+	for (void *item = this->data; item < this->data + (this->item_size * this->m_len); item += this->item_size)
+	{
+		if (find_func(item, data) == true)
+			return item;
+	}
+	
+	/* If not found */
+	return NULL;
 }
 
 BMemArray *BMemArray :: from_static(void *array, uint32 length, size_t item_size)

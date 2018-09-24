@@ -1,182 +1,170 @@
 <h1>The BString Class</h1>
 The BString class aims to simplify string manipulation for the programmer.
 A BString is just a wrapper around a null-terminated char array and should be treated as such.<br/>
-A pointer to the internal char array can be obtained by calling the <pre id="inlcode">->c_str()</pre> method.
+A pointer to the internal char array can be obtained by calling the `->c_str()` method.
 BStrings were inspired by Python strings.
 
 <h3>Class Declaration</h3>
-<pre id="code">
-class BString
-{
-protected:
-	char  *string;
-	
-	size_t m_size;
-	
-	uint32 __reserved1[4];
-	
-public:
-	bool utf8;
-	
-	BString();
-	BString(const char* str, bool utf8 = false, int32 limit = -1);
-	BString(const BString& str);
-	
-	~BString();
-	
-	bool set(const char *str);
-	
-	int32 length();
-	
-	size_t size();
-	size_t utf8_size(int32 from, int32 to);
+	class BString
+	{
+	protected:
+		char  *string;
+		
+		size_t m_size;
+		
+		uint32 __reserved1[4];
+		
+	public:
+		bool utf8;
+		
+		BString();
+		BString(const char* str, bool utf8 = false, int32 limit = -1);
+		BString(const BString& str);
+		
+		~BString();
+		
+		bool set(const char *str);
+		
+		int32 length();
+		
+		size_t size();
+		size_t utf8_size(int32 from, int32 to);
 
-	BString **split(char delim);
-	static void tuple_free(BString **tuple);
-	
-	bool        append(char *str, size_t str_size);
-	inline bool append(char *str);
-	inline bool append(BString *str);
-	bool        prepend(char *str, size_t str_size);
-	inline bool prepend(char *str);
-	inline bool prepend(BString *str);
-	bool        insert(char *str, size_t str_size, int32 offset);
-	inline bool insert(char *str, int32 offset);
-	inline bool insert(BString *str, int32 offset);
-	
-	BString *uppercase();
-	BString *lowercase();
-	
-	bool        equals(char *str, size_t str_size);
-	inline bool equals(char *str);
-	inline bool equals(BString *str);
-	
-	void remove(int32 start, int32 length);
-	void remove(const char *start, const char *end);
-	void remove_char(char chr);
-	
-	int32 count(char chr);
-	int32 count_chars(const char *chr);
-	int32 index_of (char chr, const char *start = NULL);
-	int32 index_of_utf8 (const char *chr, const char *start = NULL);
-	int32 offset_of(char chr, const char *start = NULL);
-	int32 offset_of_utf8(const char *chr, const char *start = NULL);
-	
-	const char        *first(char chr);
-	static const char *next (char chr, const char *start);
-	
-	int32 offset_of_ptr(const char *str);
-	const char *char_at(int32 index);
-	
-	inline const char *c_str();
+		BString **split(char delim);
+		static void tuple_free(BString **tuple);
+		
+		bool        append(char *str, size_t str_size);
+		inline bool append(char *str);
+		inline bool append(BString *str);
+		bool        prepend(char *str, size_t str_size);
+		inline bool prepend(char *str);
+		inline bool prepend(BString *str);
+		bool        insert(char *str, size_t str_size, int32 offset);
+		inline bool insert(char *str, int32 offset);
+		inline bool insert(BString *str, int32 offset);
+		
+		BString *uppercase();
+		BString *lowercase();
+		
+		bool        equals(char *str, size_t str_size);
+		inline bool equals(char *str);
+		inline bool equals(BString *str);
+		
+		void remove(int32 start, int32 length);
+		void remove(const char *start, const char *end);
+		void remove_char(char chr);
+		
+		int32 count(char chr);
+		int32 count_chars(const char *chr);
+		int32 index_of (char chr, const char *start = NULL);
+		int32 index_of_utf8 (const char *chr, const char *start = NULL);
+		int32 offset_of(char chr, const char *start = NULL);
+		int32 offset_of_utf8(const char *chr, const char *start = NULL);
+		
+		const char        *first(char chr);
+		static const char *next (char chr, const char *start);
+		
+		int32 offset_of_ptr(const char *str);
+		const char *char_at(int32 index);
+		
+		inline const char *c_str();
 
-	/* File access */
-	static BString *load_file(const char *path);
-	static BString *load_file(FILE *file, int32 bytes = -1, size_t chunk_size = 256);
-	bool            save_file(const char *path);
-	bool            save_file(FILE *file);
+		/* File access */
+		static BString *load_file(const char *path);
+		static BString *load_file(FILE *file, int32 bytes = -1, size_t chunk_size = 256);
+		bool            save_file(const char *path);
+		bool            save_file(FILE *file);
 
-	/* Static helper functions */
+		/* Static helper functions */
 
-private:
-};
-</pre>
+	private:
+	};
 
 <h3>Initialization</h3>
 A BString can be either constructed empty, or initialized with data.
 Here you can see two different ways of initializing BStrings:
-<pre id="code">
-BString name("Alex");
-BString *speech = new BString("'Isn't', he said.");
-</pre>
 
-As with any other heap-allocated C++ object, don't forget to free the memory of the second string (using <pre id="inlcode">delete</pre>) once you are done using it.
+	BString name("Alex");
+	BString *speech = new BString("'Isn't', he said.");
+
+As with any other heap-allocated C++ object, don't forget to free the memory of the second string (using `delete`) once you are done using it.
 
 You can also initialize a BString to the content of another BString:
-<pre id="code">
-BString name("Alex");
-BString name_copy(name);
-</pre>
+
+	BString name("Alex");
+	BString name_copy(name);
 
 <h3>UTF-8 Support</h3>
 BStrings have support for UTF-8, although it is disabled by default.<br/>
-If your string contains UTF-8 characters, you can enable UTF-8 support by setting the <pre id="inlcode">->utf8</pre> variable to <pre id="inlcode">true</pre>.
-<br/><br/>
+If your string contains UTF-8 characters, you can enable UTF-8 support by setting the `->utf8` variable to `true`.
 In this example, we see how the return value of some methods differs depending on whether UTF-8 is enabled or not.
-<pre id="code">
-BString text("Санкт-Петербургская классическая гимназия");
 
-printf("%d\n", text.length());
-text->utf8 = true;
-printf("%d\n", text.length());
-</pre>
+	BString text("Санкт-Петербургская классическая гимназия");
+
+	printf("%d\n", text.length());
+	text->utf8 = true;
+	printf("%d\n", text.length());
+
 The following code produces:
-<pre id="code">
-79
-41
-</pre>
-With UTF-8 disabled, the <pre id="inlcode">->length()</pre> method expects one byte per character (ASCII/ANSI), and therefore returns the size of the string in bytes. 
+
+	79
+	41
+
+With UTF-8 disabled, the `->length()` method expects one byte per character (ASCII/ANSI), and therefore returns the size of the string in bytes. 
 This, however, is a false result since the string is not 79 characters long.
-Enabling UTF-8 support causes the <pre id="inlcode">->length()</pre> method to count each character separately, and return the correct length of 41 characters.
-<br/><br/>
+Enabling UTF-8 support causes the `->length()` method to count each character separately, and return the correct length of 41 characters.
 
-<div id="info"><b>Note:</b> If you intentionally want to get the string's size in bytes, you should use the <pre id="inlcode">->size()</pre> method.</div>
+<div id="info"><b>Note:</b> If you intentionally want to get the string's size in bytes, you should use the `->size()` method.</div>
 
-<br/>
 A BString's constructor can also be overloaded to enable UTF-8 upon creation:
-<pre id="code">
-BString text("Санкт-Петербургская классическая гимназия", true);
-</pre>
+
+	BString text("Санкт-Петербургская классическая гимназия", true);
+
 
 <h3>File Access</h3>
 BStrings have four methods to simplify file I/O:
-<pre id="code">
+
 	static BString *load_file(const char *path);
 	static BString *load_file(FILE *file, int32 bytes = -1, size_t chunk_size = 256);
 	bool            save_file(const char *path);
 	bool            save_file(FILE *file);
-</pre>
-To read and write a text file, you use the <pre id="inlcode">::load_file()</pre> and <pre id="inlcode">->save_file()</pre> functions, which take the file's path as an argument.
+
+To read and write a text file, you use the `::load_file()` and `->save_file()` functions, which take the file's path as an argument.
 The following code loads a text file, makes all the letters uppercase, and then saves the text into the original file:
-<pre id="code">
-BString *contents = BString::load_file("myfile.txt");
-BString *contents_uppercase = contents->uppercase();
 
-contents_uppercase->save_file("myfile.txt");
+	BString *contents = BString::load_file("myfile.txt");
+	BString *contents_uppercase = contents->uppercase();
 
-delete contents;
-delete contents_uppercase;
-</pre>
+	contents_uppercase->save_file("myfile.txt");
 
-<pre id="inlcode">BString::load_file()</pre> returns a new instance of a BString and is a <i>static function</i>, meaning that although it is inside the BString class it is more like a normal function and can be called without any prior instances of a BString existing.<br/>
-If there is an error reading the file, <pre id="inlcode">BString::load_file()</pre> returns <pre id="inlcode">NULL</pre>. Similarly, <pre id="inlcode">BString->save_file()</pre> returns the boolean value <pre id="inlcode">false</pre> to indicate an error while writing and otherwise returns <pre id="inlcode">true</pre>.
-<br/><br/>
+	delete contents;
+	delete contents_uppercase;
+
+`BString::load_file()` returns a new instance of a BString and is a <i>static function</i>, meaning that although it is inside the BString class it is more like a normal function and can be called without any prior instances of a BString existing.<br/>
+If there is an error reading the file, `BString::load_file()` returns `NULL`. Similarly, `BString->save_file()` returns the boolean value `false` to indicate an error while writing and otherwise returns `true`.
 Therefore, a bullet-proof version of our code may look something like this:
-<pre id="code">
-BString *contents = BString::load_file("myfile.txt");
-if (contents == NULL) { fprintf(stderr, "Error loading myfile.txt!\n"); return; }
-BString *contents_uppercase = contents->uppercase();
 
-bool rc = contents_uppercase->save_file("myfile.txt");
-if (rc == false) { fprintf(stderr, "Error saving myfile.txt!\n"); return; }
+	BString *contents = BString::load_file("myfile.txt");
+	if (contents == NULL) { fprintf(stderr, "Error loading myfile.txt!\n"); return; }
+	BString *contents_uppercase = contents->uppercase();
 
-delete contents;
-delete contents_uppercase;
-</pre>
+	bool rc = contents_uppercase->save_file("myfile.txt");
+	if (rc == false) { fprintf(stderr, "Error saving myfile.txt!\n"); return; }
+
+	delete contents;
+	delete contents_uppercase;
 
 <div id="info"><b>Warning:</b> Loading a binary file into a BString is not reccommended as it may result in strange behavior.</div>
 
 <h4>File Pointers</h4>
-The two aforementioned functions can also be overloaded with <pre id="inlcode">FILE *</pre> pointers to already open files.
+The two aforementioned functions can also be overloaded with `FILE *` pointers to already open files.
 
-The overloaded <pre id="inlcode">::load_file()</pre> function also has additional optional arguments:
-<pre id="code">
+The overloaded `::load_file()` function also has additional optional arguments:
+
 	static BString *load_file(FILE *file, int32 bytes = -1, size_t chunk_size = 256);
-</pre>
 
-<pre id="inlcode">bytes</pre> causes the function to read only the <i>n</i> first bytes of the file. A value of <pre id="inlcode">-1</pre> indicates to read until the end of the file.<br/>
-<pre id="inlcode">chunk_size</pre> changes the size by which the internal buffer to which the file is read grows every time it is filled up. By default, the buffer is <pre id="inlcode">realloc</pre>ed every 256 bytes. Reading a 14-byte file with a chunk-size of 256 will cause 242 surplus bytes to be left allocated (however this is a trivial issue).<br/>
+`bytes` causes the function to read only the <i>n</i> first bytes of the file. A value of `-1` indicates to read until the end of the file.<br/>
+`chunk_size` changes the size by which the internal buffer to which the file is read grows every time it is filled up. By default, the buffer is reallocated every 256 bytes. Reading a 14-byte file with a chunk-size of 256 will cause 242 surplus bytes to be left allocated (however this is a trivial issue).<br/>
 The function stops reading if it reaches a null-byte.
-<br/><br/>
 
 <h3>Constructors</h3>

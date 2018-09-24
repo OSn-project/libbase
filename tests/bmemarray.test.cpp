@@ -6,6 +6,7 @@
 #include "privablic.h"
 
 #include <base/array.h>
+#include <base/misc.h>
 
 /* Private members */
 struct MEMARRAY_item_size { typedef size_t (BMemArray::*type); };
@@ -71,7 +72,7 @@ SUITE(BMemArray)
 		
 		delete arr;
 	}
-
+	
 	TEST (from_static)
 	{
 		REQUIRE {
@@ -171,6 +172,36 @@ SUITE (BArray)
 		CHECK(memcmp(arr->*member<MEMARRAY_data>::value, &d->ptr, sizeof(void *)) == 0);		// Check that the first bytes of the array's data are indeed the first bytes of the class that has been added.
 
 		mocks.ExpectCallFunc(MOCK_free).With((void *) 0x6d707472);
+		
+		delete arr;
+	}
+	
+	bool beginswithlettera(const char *item)
+	{
+		return item[0] == 'a';
+	}
+
+	bool beginswithletterz(const char *item)
+	{
+		return item[0] == 'z';
+	}
+	
+	bool length_is(const char *item, size_t length)
+	{
+		return strlen(item) == length;
+	}
+	
+	TEST (find)
+	{
+		const char *test_data[] = {"dandelion", "ant", "elephant", "avalanche"};
+		BArray<const char *> *arr = (BArray<const char *> *) BMemArray::from_static(&test_data, 4, sizeof(char *));
+		
+/*		CHECK(arr->find(beginswithlettera) == &test_data[1]);
+		CHECK(arr->find(beginswithletterz) == NULL);
+		
+		CHECK(arr->find<size_t>(length_is, 5) == &test_data[0]);
+		CHECK(arr->find<const char *>(streq, "avalanche") == &test_data[3]);
+		CHECK(arr->find<const char *>(streq, "xanthan") == NULL);*/
 		
 		delete arr;
 	}

@@ -17,8 +17,8 @@ template class private_method<PRIV_find_by_abbr, &BArgs::find_by_abbr>;
 SUITE(BMemArray)
 {
 	struct BArgs::Option options_a[] = {
-		{"strict",   0, (char **) 0x73747269},
-		{"output", 'o', (char **) 0x66696c65},
+		{"strict", (char **) 0x73747269},
+		{"output", (char **) 0x66696c65},
 		{NULL, 0, NULL}
 	};
 

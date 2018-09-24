@@ -5,8 +5,8 @@
  * is left for inheriting classes to do.		*/
 
 // DO NOT USE WITH CLASSES THAT YOU HAVE POINTERS TO. Classes are COPIED into the array and so their address will change.
-// The addresses of elements WILL change as items are inserrted and removed.
-
+// The addresses of elements WILL change as items are inserted and removed.
+//https://oopscenities.net/2011/04/30/c-inheritance-on-template-specialization/
 #ifndef __BASE_ARRAY_H__
 #define __BASE_ARRAY_H__
 
@@ -38,6 +38,10 @@ public:
 	void *add_new();			// Append memory for a new item and return a pointer to it so that it can be filled/initialized.
 	void  remove(uint32 index);	// Remove an item by its index
 	
+	/* Search */
+	void *find(bool (*find_func)(void *item));
+	void *find(bool (*find_func)(void *item, void *data), void *data);	// Returns the first item for which the provided function returns true or NULL. Custom data can be passed using the `data` argument.
+	
 	/* Working with static arrays */
 	static BMemArray *from_static(void *array, uint32 length, size_t item_size);
 	void write(void *out);
@@ -47,43 +51,91 @@ private:
 	void grow();
 };
 
+/* This template is intended for non-pointer data types. */
+
 template <typename T>
 class BArray : public BMemArray
 {
 public:
-
+	
 	BArray(uint32 init_capacity = 8) : BMemArray(sizeof(T), init_capacity)
 	{
 	};
 	
-	~BArray()
-	{
-		for (T *current = (T *) this->data; current - (T *) this->data < this->m_len; current++)
-		{
-			current->~T();
-		}
-	}
-	
 	inline T& get(uint32 index)
 	{
-		return ((T*) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
+		return ((T *) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
 	}
 
-	inline void add(T const& item)				// The `const&` makes it an immutable reference, meaning that we can even be passed literals. https://stackoverflow.com/a/7701261/6130358
+	inline void add(T const& item)		// This is a const reference. It means that we can be passed literals, ie. array->add(5);
 	{
-		this->BMemArray::add((void *) &item);
+		this->BMemArray::add((void *) item);
 	}
-	
+		
 	inline T *add_new()
 	{
 		return (T *) this->BMemArray::add_new();
 	}
-	
+
 	inline void remove(uint32 index)
 	{
-		((T *) this->get_ptr(index))->~T();		// Call the destructor on the item without freeing the memory.
-		
 		this->BMemArray::remove(index);
+	}
+
+	inline T& find(bool (*find_func)(T& item))
+	{
+		return (T) this->find((bool (*)(void *)) find_func);
+	}
+
+	template <typename C>		// Template for the custom argument. Remember that it is cast to `void *`.
+	inline T& find(bool (*find_func)(T& item, C data), C data)
+	{
+		return (T) this->BMemArray::find((bool (*)(void *, void *)) find_func, (void *) data);
+	}
+};
+
+/* This template contains code specialized for pointer types */
+
+template <typename T>
+class BArray <T *> : public BMemArray
+{
+public:
+	
+	BArray(uint32 init_capacity = 8) : BMemArray(sizeof(T *), init_capacity)
+	{
+	};
+	
+	inline T *get(uint32 index)
+	{
+		return ((T *) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
+	}
+
+	inline void add(T *item)
+	{
+		this->BMemArray::add((void *) &item);
+	}
+
+	inline T *add_new()
+	{
+		return (T *) this->BMemArray::add_new();
+	}
+
+	inline void remove(uint32 index)
+	{
+		this->BMemArray::remove(index);
+	}
+		
+	inline T *find(bool (*find_func)(T **item))
+	{
+		T **found = (T **) this->find((bool (*)(void *)) find_func);
+		return found ? *found : NULL;	// The function returns a pointer to the found item, which in this case would be a pointer to a pointer; so we need to de-reference it.
+	}
+
+	template <typename C>		// Template for the custom argument. Remember that it is cast to `void *`.
+	inline T *find(bool (*find_func)(T **item, C data), C data)
+	{
+		T **found = (T **) this->BMemArray::find((bool (*)(void *, void *)) find_func, (void *) data);
+		return found ? *found : NULL;
 	}
 };
 

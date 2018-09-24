@@ -564,7 +564,7 @@ BString *BString :: read_file(FILE *file, int32 bytes, size_t chunk_size)
 		 * the right size buffer in advance. We therefore reallocate	*
 		 * the buffer every 64 bytes that it grows.						*/
 		
-		str->string = (char *) malloc(chunk_size * sizeof(char));	// Allocate the memory at its initial size
+		str->string = (char *) realloc(str->string, chunk_size * sizeof(char));	// Allocate the memory at its initial size
 		
 		if (! str->string) return NULL;
 		
@@ -591,7 +591,7 @@ BString *BString :: read_file(FILE *file, int32 bytes, size_t chunk_size)
 	}
 	else
 	{
-		str->string = (char *) malloc(bytes + 1 * sizeof(char));
+		str->string = (char *) realloc(str->string, bytes + 1 * sizeof(char));
 		fgets(str->string, bytes + 1, file);						// The byte count we are given probably doesn't take the null-terminator into account. We therefore allocate bytes + 1 memory. fgets() reads ONE LESS than the given number bytes (so that there is always room for the null-term), and so we again tell it to read bytes + 1 bytes.
 
 		str->m_size = strnlen(str->string, bytes + 1);			// Even if we did allocate too much memory (ie. if a null byte was reached before the given amount of bytes were read), the redundant memory won't cause any problems and will be freed the next time realloc() is called, since the number of bytes *needed* by the string is stored in ->m_size.
@@ -652,9 +652,8 @@ int sprintf(BString *str, const char *format, ...)
 {
 	va_list ap;
 	
-	/* Clear the string if not empty */
-	if (str->m_size != 0)
-		str->clear();
+	/* Free the current string memory */
+	free(str->string)
 	
 	/* Open the string as a file stream;	*
 	 * we need to do this so that the size	*
