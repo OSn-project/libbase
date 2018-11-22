@@ -57,7 +57,7 @@ SUITE (BString)
 	
 	TEST (ConstructorWithInitialStringAndSize)
 	{
-		BString *str = new BString(test_str1, false, test_str1_length);
+		BString *str = new BString(test_str1, test_str1_length, false);
 		
 		CHECK(! strcmp(str->c_str(), test_str1));
 		CHECK(str->*member<BString_m_size>::value == test_str1_length);
@@ -93,9 +93,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str1);
 		
-		bool s = str->set(test_str2);
-		
-		CHECK(s == true);
+		CHECK(str->set(test_str2) == test_str2);
 		CHECK_EQUAL(str->c_str(), test_str2);
 		CHECK(str->*member<BString_m_size>::value == sizeof(test_str2) - 1);
 		
@@ -109,9 +107,10 @@ SUITE (BString)
 		BString *str = new BString(test_str1);
 		
 		mocks.ExpectCallFunc(realloc).Return(NULL);
-		bool s = str->set(test_str2);
-		
-		CHECK(s == false);
+
+		const char *result = str->set(test_str2);
+
+		CHECK(result == NULL);
 		CHECK_EQUAL(str->c_str(), "");
 		CHECK(str->*member<BString_m_size>::value == 0);
 		
@@ -263,6 +262,34 @@ SUITE (BString)
 		delete str;
 	}
 	
+	TEST (append_c)
+	{
+		BString str;
+		CHECK(BString::equals(&str, ""));
+		
+		str.append_c('h');
+		CHECK(BString::equals(&str, "h"));
+
+		str.append_c('i');
+		CHECK(BString::equals(&str, "hi"));
+		
+		CHECK(str.*member<BString_m_size>::value == 2);
+	}
+
+	TEST (concat)
+	{
+		BString str1("anti");
+		BString str2("disestablishment");
+		BString str3("");
+		BString str4("arianism");
+		
+		BString *cat = BString::concat(&str1, &str2, &str3, &str4, NULL);
+		
+		CHECK(BString::equals(cat, "antidisestablishmentarianism"));
+		CHECK(cat->*member<BString_m_size>::value == 28);
+		CHECK(cat->c_str()[28] == '\0');
+	}
+	
 	TEST (uppercase)
 	{
 		BString *str   = new BString (test_str1);
@@ -307,6 +334,24 @@ SUITE (BString)
 		delete lower;
 	}
 	
+	TEST (reverse)
+	{
+		BString str("1234567");
+		BString str_rev;
+
+		str.reverse(&str_rev);
+
+		CHECK (str.equals("1234567"));
+		CHECK (str_rev.equals("7654321"));
+		CHECK (str_rev.*member<BString_m_size>::value == 7);
+
+		/* Reverse self */
+
+		str_rev.reverse();
+
+		CHECK (str_rev.equals("1234567"));
+	}
+
 	TEST (equals)
 	{
 		BString str_a("abcdefg");
@@ -395,6 +440,37 @@ SUITE (BString)
 		delete str;
 	}
 	
+	TEST (resize)
+	{
+		BString str("undernourished");
+
+		str.resize(5, -2);
+		CHECK(BString::equals(&str, "nourish"));
+
+		str.resize(-3, -3, '#');
+		CHECK(BString::equals(&str, "###nour"));
+
+		str.resize(1, 2, '*');
+		CHECK(BString::equals(&str, "##nour**"));
+
+		str.resize(8, -5);
+		CHECK(BString::equals(&str, ""));
+
+		str.set("at");
+
+		str.resize(7, -6);
+		CHECK(BString::equals(&str, ""));
+	}
+
+	TEST (resize_UTF8)
+	{
+		BString str("амплитуда");
+		str.utf8 = true;
+
+		str.resize(2, -3);
+		CHECK(BString::equals(&str, "плит"));
+	}
+
 	TEST (count)
 	{
 		BString *str = new BString ("abcabcc");
@@ -514,13 +590,15 @@ SUITE (BString)
 	
 		delete str;		
 	}
-	
+
 	TEST (next)
 	{
-		CHECK(BString::next('o', test_str1) == test_str1 + 4);
-		CHECK(BString::next('l', BString::next('o', test_str1)) == test_str1 + 10);
-
-		CHECK(BString::next('z', test_str1) == test_str1 + sizeof(test_str1) - 1);
+		BString str(test_str1);
+		
+		CHECK(str.next('!') == str.c_str() + 12);
+		CHECK(str.next('o', str.next('w')) == str.c_str() + 8);
+		
+		CHECK(str.next('z') == str.c_str() + 13);
 	}
 	
 	TEST (offset_of_ptr)
@@ -551,7 +629,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str1);
 		
-		CHECK(str->char_at(16) == '\0');
+		CHECK(*(str->char_at(16)) == '\0');
 		
 		delete str;
 	}
@@ -569,7 +647,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str1);
 		
-		CHECK(str->char_at(-44) == '\0');
+		CHECK(*(str->char_at(-44)) == '\0');
 		
 		delete str;
 	}
@@ -587,7 +665,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str2, true);
 		
-		CHECK(str->char_at(16) == '\0');
+		CHECK(*(str->char_at(16)) == '\0');
 		
 		delete str;
 	}
@@ -605,7 +683,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str2, true);
 		
-		CHECK(str->char_at(-44) == '\0');
+		CHECK(*(str->char_at(-44)) == '\0');
 		
 		delete str;
 	}
@@ -619,6 +697,25 @@ SUITE (BString)
 		delete str;
 	}
 	
+	TEST (switch_to)
+	{
+		MockRepository mocks;
+
+		char *str = strdup("Hello, ");
+		BString *bstr = new BString("world!");
+
+		//mocks.ExpectCallFunc(free).With(bstr->c_str());
+
+		bstr->switch_to(str);
+
+		CHECK(bstr->c_str() == str);
+		CHECK(bstr->*member<BString_m_size>::value == 7);
+
+		//mocks.ExpectCallFunc(free).With(str);
+
+		delete bstr;
+	}
+
 	/*TEST (read_file_FromPath)		// The test doesn't work but it's a wrapper function anyway.
 	{
 		char path[] = "somefilepath";

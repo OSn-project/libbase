@@ -9,32 +9,45 @@
 
 BString :: BString ()
 {
-	this->string = strdup("");
+	this->string = NULL;
 	this->m_size = 0;
 	this->utf8   = false;
 }
 
-BString :: BString (const char *c_str, bool utf8, int32 limit)
+BString :: BString (const char *c_str, bool utf8)
 {
-	if (limit == -1)
-	{
-		this->string = strdup(c_str);
-		this->utf8 = utf8;
-			
-		this->m_size = strlen(this->string);		// Strlen will return a negative value if the string is longer than INT32_MAX but this is unlikely
-	}
-	else
-	{
-		this->string = strndup(c_str, limit);
-		this->utf8 = utf8;
-			
-		this->m_size = (size_t) limit;
-	}
+	this->string = strdup(c_str);
+	this->utf8 = utf8;
+
+	this->m_size = strlen(c_str);		// Strlen will return a negative value if the string is longer than INT32_MAX but this is unlikely
+}
+
+BString :: BString (const char *c_str, size_t size, bool utf8)
+{
+	this->string = (char *) malloc(size + 1);
+	memcpy(this->string, c_str, size);
+	this->string[size] = '\0';
+
+	this->utf8 = utf8;
+	this->m_size = size;
+}
+
+BString :: BString(const BString *str)
+{
+	this->string = (char *) malloc(str->m_size + 1);
+	memcpy(this->string, str->string, str->m_size);
+	this->string[str->m_size] = '\0';
+
+	this->m_size = str->m_size;
+	this->utf8   = str->utf8;
 }
 
 BString :: BString(const BString& str)
 {
-	this->string = strndup(str.string, str.m_size);
+	this->string = (char *) malloc(str.m_size + 1);
+	memcpy(this->string, str.string, str.m_size);
+	this->string[str.m_size] = '\0';
+
 	this->m_size = str.m_size;
 	this->utf8   = str.utf8;
 }
@@ -44,7 +57,7 @@ BString :: ~BString ()
 	free(this->string);
 }
 
-bool BString :: set(const char *str)
+const char *BString :: set(const char *str)
 {
 	if (str == NULL) str = "";		// Reset the string if we're given NULL
 
@@ -58,16 +71,16 @@ bool BString :: set(const char *str)
 	{
 		/* In case of an error from realloc */
 		this->m_size = 0;
-		return false;
+		return NULL;
 	}
 	
 	/* Copy the string */
 	strcpy(this->string, str);
 	
-	return true;
+	return str;
 }
 
-bool BString :: set(const BString *str)
+const BString *BString :: set(const BString *str)
 {
 	this->m_size = str->m_size;
 	this->string = (char *) malloc(this->m_size);
@@ -76,13 +89,24 @@ bool BString :: set(const BString *str)
 	
 	memcpy(this->string, str->string, this->m_size);
 	
-	return true;
+	return str;
 	
 error:
 	this->m_size = 0;
 	this->string = NULL;
 	
-	return false;
+	return NULL;
+}
+
+void BString :: switch_string(char *str, size_t size)
+{
+	/* Take ownership of the given malloced string.	*
+	 * The size should exclude the null terminator.	*/
+
+	free(this->string);
+
+	this->string = str;
+	this->m_size = size;
 }
 
 void BString :: clear()
@@ -228,6 +252,36 @@ void BString :: append_c(char c)
 	this->m_size++;
 }
 
+BString *BString :: concat(BString *str1, ...)
+{
+	va_list ap;
+	BString *str = new BString(str1);
+	
+	/* First add up all of the strings' lengths */
+	va_start(ap, str1);
+	for (BString *current; (current = va_arg(ap, BString *)) != NULL;)
+	{
+		str->m_size += current->m_size;
+	}
+	va_end(ap);
+	
+	/* Reallocate enough room */
+	str->string = (char *) realloc(str->string, str->m_size + 1);
+	
+	/* Copy the strings in */
+	char *end = str->string + str->m_size;
+
+	va_start(ap, str1);
+	for (BString *current; (current = va_arg(ap, BString *)) != NULL;)
+	{
+		memcpy(end, current->string, current->m_size);
+		end += current->m_size;
+	}
+	va_end(ap);
+	
+	*end = '\0';	// Null-terminator
+}
+
 BString *BString :: uppercase()
 {
 	char *upper_str = strdup(this->string);
@@ -256,6 +310,20 @@ BString *BString :: lowercase()
 	
 	free(lower_str);	
 	return lower;
+}
+
+BString *BString :: reverse(BString *out)	// FIXME: UTF-8
+{
+	char *reversed = (char *) malloc(this->m_size + 1);
+
+	for (char *src = this->string, *dest = reversed + this->m_size - 1; *src != '\0'; src++, dest--)
+	{
+		*dest = *src;
+	}
+
+	out->switch_to(reversed, this->m_size);
+
+	return out;
 }
 
 bool BString :: equals(BString *str, const char *c_str, size_t size)
@@ -316,6 +384,42 @@ void BString :: remove_char(char chr)
 	
 	free(this->string);
 	this->string = new_str;
+}
+
+BString *BString :: resize(int32 start, int32 end, BString *out, char fill_char)
+{
+	uint32 preceding = -b_min(start, 0);
+	uint32 lclip     =  b_max(start, 0);
+	uint32 rclip     = -b_min(end, 0);
+	uint32 following =  b_max(end, 0);
+
+	if (lclip + rclip >= this->m_size)
+	{
+		out->set("");
+	}
+	else
+	{
+		size_t final_size = preceding + (this->m_size - lclip - rclip) + following;
+
+		char *resized = (char *) malloc(final_size + 1);
+		char *tmp = resized;
+
+		/* Compose the resulting string */
+		memset(tmp, fill_char, preceding);	// Preceding fillers
+		tmp += preceding;
+
+		memcpy(tmp, this->string + lclip, this->m_size - lclip - rclip);
+		tmp += this->m_size - lclip - rclip;
+
+		memset(tmp, fill_char, following);
+		tmp += following;
+
+		*tmp = '\0';
+
+		out->switch_to(resized, final_size);
+	}
+
+	return out;
 }
 
 int32 BString :: count(char chr)
@@ -490,22 +594,16 @@ int32 BString :: offset_of_utf8(const char *chr, const char *start)
 	return offset;
 }
 
-const char *BString :: next(char chr, const char *start)
+const char *BString :: next(char chr, const char *current)
 {
-	const char *c;
-
-	for (c = start; *c != '\0'; c++)
+	if (current == NULL) current = this->string;
+	
+	while (*current != chr && current < this->string + this->m_size)	// The second condition checks whether we've gone out of the string's bounds.
 	{
-		if (*c == chr) return c;
+		current++;
 	}
 	
-	return c;
-}
-
-const char *BString :: first(char chr)
-{
-	const char *ret = BString::next(chr, this->c_str());
-	return (*ret != '\0') ? ret : NULL;
+	return current;
 }
 
 int32 BString :: offset_of_ptr(const char *str)
@@ -538,6 +636,21 @@ const char *BString :: char_at(int32 index)
 	{
 		return &this->string[index];
 	}
+}
+
+char *BString :: switch_to(char *str)
+{
+	return this->switch_to(str, strlen(str));
+}
+char *BString :: switch_to(char *str, size_t size)
+{
+	/* Free current string */
+	free(this->string);
+
+	this->string = str;
+	this->m_size = size;
+
+	return str;
 }
 
 BString *BString :: read_file(const char *path)
@@ -653,7 +766,7 @@ int sprintf(BString *str, const char *format, ...)
 	va_list ap;
 	
 	/* Free the current string memory */
-	free(str->string)
+	free(str->string);
 	
 	/* Open the string as a file stream;	*
 	 * we need to do this so that the size	*

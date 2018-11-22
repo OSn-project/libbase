@@ -40,5 +40,6 @@ struct BStrMap::Pair
 	
 	static void    mark_free(Pair *pair);
 };
-
+// set: overwrites or creates
+// set_..: creates but does not overwrite
 #endif

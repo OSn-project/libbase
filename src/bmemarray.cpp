@@ -80,9 +80,25 @@ void BMemArray :: remove(uint32 index)
 	}
 }
 
+void BMemArray :: foreach(void (*iter_func)(void *item))
+{
+	for (uint8 *item = this->data; item < this->data + (this->item_size * this->m_len); item += this->item_size)
+	{
+		iter_func(item);
+	}
+}
+
+void BMemArray :: foreach(void (*iter_func)(void *item, void *data), void *data)
+{
+	for (uint8 *item = this->data; item < this->data + (this->item_size * this->m_len); item += this->item_size)
+	{
+		iter_func(item, data);
+	}
+}
+
 void *BMemArray :: find(bool (*find_func)(void *item))
 {
-	for (void *item = this->data; item < this->data + (this->item_size * this->m_len); item += this->item_size)
+	for (uint8 *item = this->data; item < this->data + (this->item_size * this->m_len); item += this->item_size)
 	{
 		if (find_func(item) == true)
 			return item;
@@ -94,7 +110,7 @@ void *BMemArray :: find(bool (*find_func)(void *item))
 
 void *BMemArray :: find(bool (*find_func)(void *item, void *data), void *data)
 {
-	for (void *item = this->data; item < this->data + (this->item_size * this->m_len); item += this->item_size)
+	for (uint8 *item = this->data; item < this->data + (this->item_size * this->m_len); item += this->item_size)
 	{
 		if (find_func(item, data) == true)
 			return item;

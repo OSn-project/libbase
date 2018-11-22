@@ -30,6 +30,11 @@ inline bool BString :: insert(BString *str, int32 offset)
 	return this->insert(str->string, str->m_size, offset);
 }
 
+inline void BString :: reverse()
+{
+	this->reverse(this);
+}
+
 inline bool BString :: equals(const char *b, size_t size)
 {
 	return BString::BString :: equals(this, b, size);
@@ -43,6 +48,11 @@ inline bool BString :: equals(const char *b)
 inline bool BString :: equals(BString *b)
 {
 	return BString::BString :: equals(this, b);
+}
+
+inline void BString :: resize(int32 start, int32 end, char fill_char)
+{
+	this->resize(start, end, this, fill_char);
 }
 
 inline const char *BString :: c_str()

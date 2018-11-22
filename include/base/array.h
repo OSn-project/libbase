@@ -38,9 +38,11 @@ public:
 	void *add_new();			// Append memory for a new item and return a pointer to it so that it can be filled/initialized.
 	void  remove(uint32 index);	// Remove an item by its index
 	
-	/* Search */
+	/* Iteration */
+	void  foreach(void (*iter_func)(void *item));
+	void  foreach(void (*iter_func)(void *item, void *data), void *data);	// Custom data can be passed using the `data` argument.
 	void *find(bool (*find_func)(void *item));
-	void *find(bool (*find_func)(void *item, void *data), void *data);	// Returns the first item for which the provided function returns true or NULL. Custom data can be passed using the `data` argument.
+	void *find(bool (*find_func)(void *item, void *data), void *data);	// Returns the first item for which the provided function returns true or NULL.
 	
 	/* Working with static arrays */
 	static BMemArray *from_static(void *array, uint32 length, size_t item_size);
@@ -51,14 +53,28 @@ private:
 	void grow();
 };
 
+template <typename T>
+class BArrayBase : public BMemArray
+{
+public:
+	inline BArrayBase(uint32 init_capacity = 8) : BMemArray(sizeof(T), init_capacity)
+	{
+	}
+
+	inline void remove(uint32 index)
+	{
+		this->BMemArray::remove(index);
+	}
+};
+
 /* This template is intended for non-pointer data types. */
 
 template <typename T>
-class BArray : public BMemArray
+class BArray : public BArrayBase<T>
 {
 public:
 	
-	BArray(uint32 init_capacity = 8) : BMemArray(sizeof(T), init_capacity)
+	BArray(uint32 init_capacity = 8) : BArrayBase<T>(init_capacity)
 	{
 	};
 	
@@ -77,9 +93,15 @@ public:
 		return (T *) this->BMemArray::add_new();
 	}
 
-	inline void remove(uint32 index)
+	inline void foreach(void (*iter_func)(T& item))
 	{
-		this->BMemArray::remove(index);
+		this->BMemArray::foreach((void (*)(void *)) iter_func);
+	}
+
+	template <typename C>		// Template for the custom argument. Remember that it is cast to `void *`.
+	inline void foreach(void (*iter_func)(T& item, C data), C data)
+	{
+		this->BMemArray::foreach((void (*)(void *, void *)) iter_func, (void *) data);
 	}
 
 	inline T& find(bool (*find_func)(T& item))
@@ -97,7 +119,7 @@ public:
 /* This template contains code specialized for pointer types */
 
 template <typename T>
-class BArray <T *> : public BMemArray
+class BArray <T *> : public BArrayBase<T>
 {
 public:
 	
@@ -119,12 +141,18 @@ public:
 	{
 		return (T *) this->BMemArray::add_new();
 	}
-
-	inline void remove(uint32 index)
-	{
-		this->BMemArray::remove(index);
-	}
 		
+	inline void foreach(void (*iter_func)(T& item))
+	{
+		this->BMemArray::foreach((void (*)(void *)) iter_func);
+	}
+
+	template <typename C>		// Template for the custom argument. Remember that it is cast to `void *`.
+	inline void foreach(void (*iter_func)(T& item, C data), C data)
+	{
+		this->BMemArray::foreach((void (*)(void *, void *)) iter_func, (void *) data);
+	}
+
 	inline T *find(bool (*find_func)(T **item))
 	{
 		T **found = (T **) this->find((bool (*)(void *)) find_func);

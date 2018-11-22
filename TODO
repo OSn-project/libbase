@@ -1,1 +1,4 @@
  - Change BString::append from bool to void
+ - Nullable BStrings
+ - BString ownership flag
+ - Public string?

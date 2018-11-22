@@ -167,4 +167,13 @@ The overloaded `::load_file()` function also has additional optional arguments:
 `chunk_size` changes the size by which the internal buffer to which the file is read grows every time it is filled up. By default, the buffer is reallocated every 256 bytes. Reading a 14-byte file with a chunk-size of 256 will cause 242 surplus bytes to be left allocated (however this is a trivial issue).<br/>
 The function stops reading if it reaches a null-byte.
 
-<h3>Constructors</h3>
+Console I/O
+-----------
+
+The `BString::read_line` function can be used to read a line from a file into a string.  
+Input is appended to any existing text and there is no limit on input length. A trivial usage example would be:
+
+	BString name;
+	printf("What's your name?: ");
+	BString::read_line(stdin, &name);
+	printf("Hello, %s!\n", name.c_str());

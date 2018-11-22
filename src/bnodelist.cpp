@@ -20,6 +20,6 @@ BListNode *BNodeList :: get(uint32 index)
 
 void BNodeList :: add(BListNode *node)
 {
-	BListNode::append(node, &this->first);
+	//BListNode::append(node, &this->first);
 	this->length++;
 }

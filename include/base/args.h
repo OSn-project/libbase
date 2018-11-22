@@ -17,7 +17,6 @@ public:
 	struct Option
 	{
 		const char *name;
-		const char  abbr;
 		
 		//OptionType opt_type;
 		
@@ -36,7 +35,6 @@ public:
 	
 private:
 	static Option *find_by_name(char *name, size_t length, Option *options);
-	static Option *find_by_abbr(char abbr, Option *options);
 };
 
 #endif
