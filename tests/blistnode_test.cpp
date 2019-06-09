@@ -18,7 +18,7 @@ SUITE(BListNode)
 
 		BListNode *first = test_nodes_new(&tmp);
 
-		REQUIRE
+		/*REQUIRE*/
 		{
 			CHECK (first == tmp[0]);
 			CHECK (tmp[0]->prev == NULL);
@@ -191,7 +191,7 @@ SUITE(BListNode)
 		CHECK (node_a->next == NULL);
 		CHECK (node_a->prev == NULL);
 		
-		BListNode::append(node_a, &list);
+		BListNode::append(node_b, &list);
 
 		CHECK (list == node_a);
 		CHECK (node_a->next == node_b);

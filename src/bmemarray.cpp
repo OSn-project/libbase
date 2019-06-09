@@ -4,16 +4,16 @@
 //#include <base/memarray.h>
 #include <base/array.h>
 
-BMemArray :: BMemArray(size_t item_size, uint32 init_capacity)
+BMemArray :: BMemArray(size_t item_size)
 {
 	/* Initialize variables */
 	this->item_size = item_size;
 	
 	this->m_len = 0;
-	this->capacity = init_capacity;
+	this->capacity = 0;
 	
 	/* Allocate initial memory */
-	this->data = (uint8 *) calloc(this->item_size, init_capacity);
+	this->data = NULL;
 }
 
 BMemArray :: ~BMemArray()
@@ -122,10 +122,13 @@ void *BMemArray :: find(bool (*find_func)(void *item, void *data), void *data)
 
 BMemArray *BMemArray :: from_static(void *array, uint32 length, size_t item_size)
 {
-	BMemArray *arr = new BMemArray(item_size, length);	// If we give it the correct initial length, the only thing we need to do is copy the data.
-	
+	BMemArray *arr = new BMemArray(item_size);	// If we give it the correct initial length, the only thing we need to do is copy the data.
+
+	arr->data = (uint8 *) malloc(length * item_size);
 	memcpy(arr->data, array, length * item_size);
+	
 	arr->m_len = length;									// The array had a filled length of 0 when it was created (we only gave it the length to tell it how much memory to allocate). Set the length to reflect the data that we just copied into it.
+	arr->capacity = length;
 	
 	return arr;
 }

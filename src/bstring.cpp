@@ -1,34 +1,38 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <new>
 
 #include "../include/osndef.h"
 #include "../include/utf8.h"
 #include "../include/base/misc.h"
+#include "../include/base/macros.h"
 #include "../include/base/string.h"
+#include "../include/base/array.h"
+
+#ifdef NO_UTF8
+#error shouldnt be defined
+#endif
 
 BString :: BString ()
 {
-	this->string = NULL;
+	this->string = strdup("");
 	this->m_size = 0;
-	this->utf8   = false;
 }
 
-BString :: BString (const char *c_str, bool utf8)
+BString :: BString (const char *c_str)
 {
 	this->string = strdup(c_str);
-	this->utf8 = utf8;
 
 	this->m_size = strlen(c_str);		// Strlen will return a negative value if the string is longer than INT32_MAX but this is unlikely
 }
 
-BString :: BString (const char *c_str, size_t size, bool utf8)
+BString :: BString (const char *c_str, size_t size)
 {
 	this->string = (char *) malloc(size + 1);
 	memcpy(this->string, c_str, size);
 	this->string[size] = '\0';
 
-	this->utf8 = utf8;
 	this->m_size = size;
 }
 
@@ -39,7 +43,6 @@ BString :: BString(const BString *str)
 	this->string[str->m_size] = '\0';
 
 	this->m_size = str->m_size;
-	this->utf8   = str->utf8;
 }
 
 BString :: BString(const BString& str)
@@ -49,7 +52,6 @@ BString :: BString(const BString& str)
 	this->string[str.m_size] = '\0';
 
 	this->m_size = str.m_size;
-	this->utf8   = str.utf8;
 }
 
 BString :: ~BString ()
@@ -57,15 +59,17 @@ BString :: ~BString ()
 	free(this->string);
 }
 
-const char *BString :: set(const char *str)
+const char *BString :: set(const char *str, size_t len)
 {
-	if (str == NULL) str = "";		// Reset the string if we're given NULL
+	if (str == NULL) return NULL;		// Don't change anything if we're given NULL
 
 	/* Change the size of the buffer to	*
 	 * match the size of the new string	*/
 	
-	this->m_size = strlen(str);
-	this->string = (char *) realloc(this->string, this->m_size + 1);
+	this->m_size = len;
+
+	free(this->string);
+	this->string = (char *) malloc(this->m_size + 1);
 	
 	if (! this->string)
 	{
@@ -75,14 +79,17 @@ const char *BString :: set(const char *str)
 	}
 	
 	/* Copy the string */
-	strcpy(this->string, str);
+	memcpy(this->string, str, len);
+	this->string[len] = '\0';
 	
 	return str;
 }
 
-const BString *BString :: set(const BString *str)
+const BString *BString :: set(const BString *str)		// TODO: not unit-tested
 {
 	this->m_size = str->m_size;
+
+	free(this->string);
 	this->string = (char *) malloc(this->m_size);
 	
 	if (this->string == NULL) goto error;
@@ -98,21 +105,10 @@ error:
 	return NULL;
 }
 
-void BString :: switch_string(char *str, size_t size)
-{
-	/* Take ownership of the given malloced string.	*
-	 * The size should exclude the null terminator.	*/
-
-	free(this->string);
-
-	this->string = str;
-	this->m_size = size;
-}
-
 void BString :: clear()
 {
 	free(this->string);
-	this->string = NULL;
+	this->string = strdup("");
 	this->m_size = 0;
 }
 
@@ -120,14 +116,11 @@ int32 BString :: length()
 {
 	if (this->string == NULL) return 0;
 	
-	if (this->utf8)
-	{
-		return utf8_length(this->string);
-	}
-	else
-	{
-		return this->m_size;
-	}
+#ifndef NO_UTF8
+	return utf8_length(this->string);
+#else
+	return this->m_size;
+#endif
 }
 
 size_t BString :: size()
@@ -152,38 +145,57 @@ size_t BString :: utf8_size(int32 from, int32 to)
 	return size;
 }
 
-BString **BString :: split(char delim)
+const char *strchrsnul(const char *str, const char *chrs)
 {
-	/* First we need to get the number of strings that		*
-	 * the original string will be split into. This is  	*
-	 * just the count of delimiters in the string plus 1.	*/
-	
-	uint32 out_strings = 1 + this->count(delim);
-	
-	/* Allocate the tuple */
-	BString **out = (BString **) calloc(out_strings + 1, sizeof(BString *));		// +1 because it is a null-terminated array.
-	
-	BString **str_ptr = out;											// This points to the current pointer in the tuple that we're creating. We increment it every time the loop iterates.
-	
-	for (const char *c = this->string; *c != '\0'; c = (*c == delim) ? c + 1 : (1 + BString::next(delim, c)))	// 'c + 1' if c is a delimiter so that we keep moving and don't get stuck. If it wasn't for the +1 in '1 + BStr..', so that we skip to the character AFTER the next delimiter.
+	/* Like strchrnul, but stops at any of the given chars. */
+
+	const char *chr = str;
+
+	for (; *chr != '\0'; chr++)
 	{
-		*str_ptr = new BString(c, this->utf8, this->offset_of(delim, c));
-		str_ptr++;
+		if (strchr(chrs, *chr) != NULL) break;
 	}
-	
-	return out;
+
+	return chr;
 }
 
-void BString :: tuple_free(BString **tuple)
+const char *strchrsnul_utf8(const char *str, const char *chrs)
 {
-	if (tuple == NULL) return;
-	
-	for (BString **str = tuple; *str != NULL; str++)
+	/* Like strchrnul, but stops at any of the given chars. Supports UTF-8. */
+
+	const char *chr = str;
+
+	for (; *chr != '\0'; chr++)
 	{
-		delete *str;
+		if (strchr_utf8((char *) chrs, chr) != NULL) break;
 	}
-	
-	free(tuple);
+
+	return chr;
+}
+
+void BString :: split(const char *delims, BArray<BString> *out)
+{
+	const char *start = this->string;
+	const char *end;
+
+	do
+	{
+#ifndef NO_UTF8
+		end = strchrsnul_utf8(start, delims);
+
+		new (out->add_new()) BString(start, (size_t) (end - start));
+
+		start = utf8_nextchar((char *) end);
+#else
+		end = strchrsnul(start, delims);
+
+		new (out->add_new()) BString(start, (size_t) (end - start));
+
+		start = ++end;
+
+#endif
+	}
+	while (*end != '\0');
 }
 
 bool BString :: append(char *str, size_t str_size)
@@ -234,7 +246,11 @@ bool BString :: insert(char *str, size_t str_size, int32 offset)
 		return false;
 	}
 	
-	char *insert_pos = this->utf8 ? utf8_char_at(this->string, offset) : &this->string[offset];		// Get a pointer to where the string will be inserted.
+#ifndef NO_UTF8
+	char *insert_pos = utf8_char_at(this->string, offset);
+#else
+	char *insert_pos = &this->string[offset];		// Get a pointer to where the string will be inserted.
+#endif
 	
 	memmove(insert_pos + str_size, insert_pos, this->m_size - (insert_pos - this->string) + 1); 		// Create space for the inserted string by shifting the text AFTER the insert position by the length of the string. +1 to shift the null terminator too. We use memmove instead of memcpy because the areas may overlap.
 	memcpy(insert_pos, str, str_size);			// Copy the string into the space that we newly created.
@@ -257,6 +273,8 @@ BString *BString :: concat(BString *str1, ...)
 	va_list ap;
 	BString *str = new BString(str1);
 	
+	size_t insert_idx = str->m_size;	// Start inserting after the string that's already been copied. We use this later.
+
 	/* First add up all of the strings' lengths */
 	va_start(ap, str1);
 	for (BString *current; (current = va_arg(ap, BString *)) != NULL;)
@@ -269,17 +287,17 @@ BString *BString :: concat(BString *str1, ...)
 	str->string = (char *) realloc(str->string, str->m_size + 1);
 	
 	/* Copy the strings in */
-	char *end = str->string + str->m_size;
-
 	va_start(ap, str1);
 	for (BString *current; (current = va_arg(ap, BString *)) != NULL;)
 	{
-		memcpy(end, current->string, current->m_size);
-		end += current->m_size;
+		memcpy(str->string + insert_idx, current->string, current->m_size);
+		insert_idx += current->m_size;
 	}
 	va_end(ap);
 	
-	*end = '\0';	// Null-terminator
+	str->string[insert_idx] = '\0';	// Null-terminator
+
+	return str;
 }
 
 BString *BString :: uppercase()
@@ -343,26 +361,28 @@ bool BString :: equals(BString *str_a, BString *str_b)
 	return streq(str_a->string, str_b->string);
 }
 
-void BString :: remove(int32 start, int32 length)
+bool BString :: remove(int32 start, int32 length)
 {
-	if (length <= 0) return;
+	if (length <= 0) return false;
 	if (start  <  0) start += this->length();
-	if (start  <  0) return;					// If start is out of range even after adding the string's length...
-	if (length > this->length() - start) return;	// Check that the length they want to remove isn't longer than the rest of the string.
+	if (start  <  0) return false;						// If start is out of range even after adding the string's length...
+	if (length > this->length() - start) return false;	// Check that the length they want to remove isn't longer than the rest of the string.
 	
-	this->remove(this->char_at(start), this->char_at(start + length));
+	return this->remove(this->char_at(start), this->char_at(start + length));
 }
 
-void BString :: remove(const char *start, const char *end)
+bool BString :: remove(const char *start, const char *end)
 {
-	if (end <= start) return;
-	if (! (this->string <= start && start < this->string + this->m_size)) return;
-	if (! (this->string <  end   && end   < this->string + this->m_size)) return;
+	if (end <= start) return false;
+	if (! (this->string <= start && start < this->string + this->m_size)) return false;
+	if (! (this->string <  end   && end   < this->string + this->m_size)) return false;
 	
 	memmove((void *) start, (void *) end, this->string + this->m_size - end + 1);	// +1 to copy the null-term too.
 
 	this->m_size -= end - start;									// Decrease the size to that of the string after the given range has been removed.
-	this->string = (char *) realloc(this->string, this->m_size);		// Shrink the memory because we don't need as much anymore.
+	this->string = (char *) realloc(this->string, this->m_size);	// Shrink the memory because we don't need as much anymore.
+
+	return true;
 }
 
 void BString :: remove_char(char chr)
@@ -395,7 +415,7 @@ BString *BString :: resize(int32 start, int32 end, BString *out, char fill_char)
 
 	if (lclip + rclip >= this->m_size)
 	{
-		out->set("");
+		out->clear();
 	}
 	else
 	{
@@ -426,20 +446,14 @@ int32 BString :: count(char chr)
 {
 	if (this->string == NULL) return 0;
 	int32 count = 0;
-	
-	if (this->utf8)
+
+#ifndef NO_UTF8
+	for (char *c = this->string; *c != '\0'; c = utf8_nextchar(c))
+#else
+	for (char *c = this->string; *c != '\0'; c++)
+#endif
 	{
-		for (char *c = this->string; *c != '\0'; c = utf8_nextchar(c))
-		{
-			if (*c == chr) count++;
-		}
-	}
-	else
-	{
-		for (char *c = this->string; *c != '\0'; c++)
-		{
-			if (*c == chr) count++;
-		}
+		if (*c == chr) count++;
 	}
 	
 	return count;
@@ -450,26 +464,23 @@ int32 BString :: count_chars(const char *chars)
 	if (this->string == NULL) return 0;
 	int32 count = 0;
 	
-	if (this->utf8)
+#ifndef NO_UTF8
+	for (char *str_char = this->string; *str_char != '\0'; str_char = utf8_nextchar(str_char))
 	{
-		for (char *str_char = this->string; *str_char != '\0'; str_char = utf8_nextchar(str_char))
+		for (char *chr = (char *) chars; *chr != '\0'; chr = utf8_nextchar(chr))
 		{
-			for (char *chr = (char *) chars; *chr != '\0'; chr = utf8_nextchar(chr))
-			{
-				if (utf8_charcmp(str_char, chr)) count++;
-			}
+			if (utf8_charcmp(str_char, chr)) count++;
 		}
 	}
-	else
+#else
+	for (char *str_char = this->string; *str_char != '\0'; str_char++)		// For each character in the string
 	{
-		for (char *str_char = this->string; *str_char != '\0'; str_char++)		// For each character in the string
+		for (char *chr = (char *) chars; *chr != '\0'; chr++)		// We loop over each of the characters to count
 		{
-			for (char *chr = (char *) chars; *chr != '\0'; chr++)		// We loop over each of the characters to count
-			{
-				if (*str_char == *chr) count++;						// and compare the two.
-			}
+			if (*str_char == *chr) count++;						// and compare the two.
 		}
 	}
+#endif
 	
 	return count;
 }
@@ -491,7 +502,11 @@ int32 BString :: index_of(char chr, const char *start)		// The following three f
 	/* Get the index of the given character */
 	int32 index = 0;
 	
-	for (char *c = (char *) start; *c != chr; c = (this->utf8 ? utf8_nextchar(c) : c + 1))		// const grrrhh
+#ifndef NO_UTF8
+	for (char *c = (char *) start; *c != chr; c = utf8_nextchar(c))		// const grrrhh
+#else
+	for (char *c = (char *) start; *c != chr; c++)		// const grrrhh
+#endif
 	{
 		if (*c == '\0')
 		{
@@ -521,7 +536,7 @@ int32 BString :: index_of_utf8(const char *chr, const char *start)
 	/* Get the index of the given character */
 	int32 index = 0;
 	
-	for (char *c = (char *) start; utf8_charcmp(c, chr) != true; c = (this->utf8 ? utf8_nextchar(c) : c + 1))
+	for (char *c = (char *) start; utf8_charcmp(c, chr) != true; c = utf8_nextchar(c))
 	{
 		if (*c == '\0')
 		{
@@ -626,16 +641,13 @@ int32 BString :: offset_of_ptr(const char *str)
 const char *BString :: char_at(int32 index)
 {
 	if (index < 0) index += this->length();
-	if (index > this->length() || index < 0) return "";
+	if (index > this->length() || index < 0) return NULL;
 	
-	if (this->utf8)
-	{
-		return utf8_char_at(this->string, index);
-	}
-	else
-	{
-		return &this->string[index];
-	}
+#ifndef NO_UTF8
+	return utf8_char_at(this->string, index);
+#else
+	return &this->string[index];
+#endif
 }
 
 char *BString :: switch_to(char *str)
@@ -782,3 +794,8 @@ int sprintf(BString *str, const char *format, ...)
 	
 	return rc;
 }
+
+/*-----------------
+ *  - \0 compatable strings           yes
+ *  - nullable BString                 no
+ *-----------------*/

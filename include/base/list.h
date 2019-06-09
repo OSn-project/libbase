@@ -1,16 +1,25 @@
-#ifndef __BLIST_H__
-#define __BLIST_H__
+#ifndef BASE_LIST_H_
+#define BASE_LIST_H_
 
 #include <osndef.h>
-#include "nodelist.h.h"
+//#include "nodelist.h"
 
-template <typename T>
-class BList : public BNodeList
+template <typename NodeType>
+class BList : private BNodeList
 {
 public:
 	/* Type-safe methods that override their BNodeList counterparts */
 	
-	inline T *get(uint32 index) { return (T *) this->BNodeList::get(index); }
+	inline BList() : BNodeList() {}
+	inline BList(NodeType *initial) : BNodeList(initial) {}
+
+	inline NodeType *get(uint32 index) 					{ return (NodeType *) this->BNodeList::get(index); }
+	inline int32 index_of(NodeType *node)				{ return this->BNodeList::index_of(node); }
+
+	/* Adding and removing */
+	inline void add(NodeType *item)						{ return this->BNodeList::add(item); }
+	inline void insert(NodeType *item, uint32 index)	{ return this->BNodeList::insert(item, index); }
+	inline NodeType *remove(uint32 index)				{ return (NodeType *) this->BNodeList::remove(index); }
 };
 
 #endif

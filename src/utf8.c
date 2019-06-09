@@ -102,3 +102,13 @@ void  utf8_slice(char *src, char *dest, int32 start, int32 chars)
 	
 	*(dest) = '\0';		// Add a null-terminator to the end.
 }
+
+char *strchr_utf8(char *str, const char *stop)
+{
+	for (char *cur = str; *cur != '\0'; cur = utf8_nextchar(cur))
+	{
+		if (utf8_charcmp(cur, stop)) return cur;
+	}
+
+	return NULL;
+}

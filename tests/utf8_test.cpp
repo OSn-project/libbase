@@ -10,9 +10,9 @@ SUITE (utf8)
 	
 	TEST (utf8_charcmp)
 	{
-		REQUIRE CHECK(utf8_charcmp(&test_str1[1], "✓") == true);
-		REQUIRE CHECK(utf8_charcmp("♞", "a") == false);
-		REQUIRE CHECK(utf8_charcmp("", "hello") == false);
+		/*REQUIRE*/ CHECK(utf8_charcmp(&test_str1[1], "✓") == true);
+		/*REQUIRE*/ CHECK(utf8_charcmp("♞", "a") == false);
+		/*REQUIRE*/ CHECK(utf8_charcmp("", "hello") == false);
 	}
 	
 	TEST(utf8_length)
@@ -72,5 +72,14 @@ SUITE (utf8)
 		memset(out, 0xff, 64);
 		utf8_slice(test_str1, out, -1, 3);
 		CHECK_EQUAL(out, "");
+	}
+
+	TEST(strchr_utf8)
+	{
+		char *str = "€€€€€♫€€";
+
+		CHECK(strchr_utf8(str, "♫") == str + 15);
+		CHECK(strchr_utf8(str, "") == NULL);
+		CHECK(strchr_utf8(str, "❄") == NULL);
 	}
 }

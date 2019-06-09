@@ -24,7 +24,7 @@ protected:
 	uint8 *data;
 
 public:
-	BMemArray(size_t item_size = sizeof(void *), uint32 init_capacity = 8);
+	BMemArray(size_t item_size = sizeof(void *));
 	~BMemArray();
 	
 	inline void *get_data() { return this->data; };
@@ -38,6 +38,9 @@ public:
 	void *add_new();			// Append memory for a new item and return a pointer to it so that it can be filled/initialized.
 	void  remove(uint32 index);	// Remove an item by its index
 	
+//	void extend(BMemArray *other);
+//	static BMemArray *concatenate(BMemArray *arr1, BMemArray *arr2);
+
 	/* Iteration */
 	void  foreach(void (*iter_func)(void *item));
 	void  foreach(void (*iter_func)(void *item, void *data), void *data);	// Custom data can be passed using the `data` argument.
@@ -57,8 +60,13 @@ template <typename T>
 class BArrayBase : public BMemArray
 {
 public:
-	inline BArrayBase(uint32 init_capacity = 8) : BMemArray(sizeof(T), init_capacity)
+	inline BArrayBase() : BMemArray(sizeof(T))
 	{
+	}
+
+	inline T& get(uint32 index)
+	{
+		return ((T *) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
 	}
 
 	inline void remove(uint32 index)
@@ -74,14 +82,14 @@ class BArray : public BArrayBase<T>
 {
 public:
 	
-	BArray(uint32 init_capacity = 8) : BArrayBase<T>(init_capacity)
+	BArray() : BArrayBase<T>()
 	{
 	};
 	
-	inline T& get(uint32 index)
-	{
-		return ((T *) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
-	}
+//	inline T& get(uint32 index)
+//	{
+//		return ((T *) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
+//	}
 
 	inline void add(T const& item)		// This is a const reference. It means that we can be passed literals, ie. array->add(5);
 	{
@@ -119,18 +127,18 @@ public:
 /* This template contains code specialized for pointer types */
 
 template <typename T>
-class BArray <T *> : public BArrayBase<T>
+class BArray <T *> : public BArrayBase<T *>
 {
 public:
-	
-	BArray(uint32 init_capacity = 8) : BMemArray(sizeof(T *), init_capacity)
+
+	BArray() : BArrayBase<T *>()
 	{
 	};
-	
-	inline T *get(uint32 index)
-	{
-		return ((T *) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
-	}
+
+//	inline T get(uint32 index)
+//	{
+//		return ((T *) this->data)[index];
+//	}
 
 	inline void add(T *item)
 	{
@@ -141,7 +149,7 @@ public:
 	{
 		return (T *) this->BMemArray::add_new();
 	}
-		
+
 	inline void foreach(void (*iter_func)(T& item))
 	{
 		this->BMemArray::foreach((void (*)(void *)) iter_func);

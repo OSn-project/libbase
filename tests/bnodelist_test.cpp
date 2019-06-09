@@ -49,4 +49,33 @@ SUITE(BNodeList)
 		
 		test_nodes_free(&tmp);
 	}
+
+	TEST(index_of)
+	{
+		BListNode **tmp;
+		test_nodes_new(&tmp);
+		BNodeList list(tmp[0]);
+
+		CHECK(list.index_of(tmp[2]) == 2);
+		CHECK(list.index_of((BListNode *) 47) == -1);
+		CHECK(list.index_of(NULL)  == -1);
+
+		test_nodes_free(&tmp);
+	}
+
+	TEST(insert)
+	{
+		MockRepository mocks;
+		BListNode **tmp;
+		test_nodes_new(&tmp);
+		BNodeList list(tmp[0]);
+
+		BListNode new_node;
+		mocks.ExpectCallFunc(BListNode::insert).With(&new_node, tmp[2]);
+		list.insert(&new_node, 3);
+
+		CHECK(list.length == 5);
+
+		test_nodes_free(&tmp);
+	}
 }

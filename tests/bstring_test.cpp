@@ -7,6 +7,7 @@
 #include "privablic.h"
 
 #include "../include/base/string.h"
+#include "../include/base/array.h"
 #include "../include/utf8.h"
 
 /* Privablic */
@@ -27,52 +28,45 @@ SUITE (BString)
 	{
 		BString *str = new BString();
 		
-		REQUIRE CHECK(! strcmp(str->c_str(), ""));
-		REQUIRE CHECK(str->*member<BString_m_size>::value == 0);
+		/*REQUIRE*/ CHECK(! strcmp(str->c_str(), ""));
+		/*REQUIRE*/ CHECK(str->*member<BString_m_size>::value == 0);
 		
 		delete str;
 	}
 	
 	TEST (ConstructorWithInitialString)
 	{
+#ifdef NO_UTF8
 		BString *str = new BString(test_str1);
 		
-		REQUIRE CHECK(! strcmp(str->c_str(), test_str1));
-		REQUIRE CHECK(str->*member<BString_m_size>::value == test_str1_length);
-		CHECK(str->utf8 == false);
-		
-		delete str;
-	}
+		/*REQUIRE*/ CHECK(! strcmp(str->c_str(), test_str1));
+		/*REQUIRE*/ CHECK(str->*member<BString_m_size>::value == test_str1_length);
+#else
+		BString *str = new BString(test_str2);
 
-	TEST (ConstructorWithInitialStringUTF8)
-	{
-		BString *str = new BString(test_str2, true);
-		
-		REQUIRE CHECK(! strcmp(str->c_str(), test_str2));
-		REQUIRE CHECK(str->*member<BString_m_size>::value == sizeof(test_str2) - 1);
-		CHECK(str->utf8 == true);
+		/*REQUIRE*/ CHECK(! strcmp(str->c_str(), test_str2));
+		/*REQUIRE*/ CHECK(str->*member<BString_m_size>::value == sizeof(test_str2) - 1);
+#endif
 		
 		delete str;
 	}
 	
 	TEST (ConstructorWithInitialStringAndSize)
 	{
-		BString *str = new BString(test_str1, test_str1_length, false);
+		BString *str = new BString(test_str1, test_str1_length);
 		
 		CHECK(! strcmp(str->c_str(), test_str1));
 		CHECK(str->*member<BString_m_size>::value == test_str1_length);
-		CHECK(str->utf8 == false);
 		
 		delete str;
 	}
 
 	TEST (ConstructorWithInitialStringAndSizeLength0)
 	{
-		BString *str = new BString(test_str1, false, 0);
+		BString *str = new BString(test_str1, 0);
 		
 		CHECK(! strcmp(str->c_str(), ""));
 		CHECK(str->*member<BString_m_size>::value == 0);
-		CHECK(str->utf8 == false);
 		
 		delete str;
 	}
@@ -84,7 +78,6 @@ SUITE (BString)
 		
 		CHECK(! strcmp(str->c_str(), test_str1));
 		CHECK(str->*member<BString_m_size>::value == test_str1_length);
-		CHECK(str->utf8 == false);
 		
 		delete str;
 	}
@@ -106,12 +99,13 @@ SUITE (BString)
 		
 		BString *str = new BString(test_str1);
 		
-		mocks.ExpectCallFunc(realloc).Return(NULL);
+		mocks.ExpectCallFunc(malloc).Return(NULL);
 
 		const char *result = str->set(test_str2);
 
 		CHECK(result == NULL);
-		CHECK_EQUAL(str->c_str(), "");
+
+		CHECK(str->c_str() == NULL);
 		CHECK(str->*member<BString_m_size>::value == 0);
 		
 		delete str;
@@ -131,9 +125,13 @@ SUITE (BString)
 
 	TEST (length)
 	{
-		BString *str = new BString(test_str1);
+		BString *str = new BString(test_str2);
 		
-		CHECK_EQUAL(test_str1_length, str->length());
+#ifdef NO_UTF8
+		CHECK_EQUAL(sizeof(test_str2) - 1, str->length());
+#else
+		CHECK_EQUAL(test_str2_length, str->length());
+#endif
 		
 		delete str;
 	}
@@ -147,37 +145,18 @@ SUITE (BString)
 		delete str;
 	}
 
-	TEST (length_UTF8)
-	{
-		BString *str = new BString(test_str2, true);
-		
-		CHECK_EQUAL(test_str2_length, str->length());
-		
-		delete str;
-	}
-
-	TEST (length_UTF8EmptyString)
-	{
-		BString *str = new BString();
-		str->utf8 = true;
-		
-		CHECK_EQUAL(str->length(), 0);
-		
-		delete str;
-	}
-
 	TEST (size)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
-		CHECK_EQUAL(str->*member<BString_m_size>::value, str->size());
+		CHECK_EQUAL(sizeof(test_str2) - 1, str->size());
 		
 		delete str;
 	}
 
 	TEST (utf8_size)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
 		CHECK_EQUAL(6, str->utf8_size(3, 5));
 		CHECK_EQUAL(6, str->utf8_size(-5, -3));
@@ -187,7 +166,7 @@ SUITE (BString)
 
 	TEST (utf8_size_OutOfBounds)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
 		CHECK_EQUAL(16, str->utf8_size( 2,15));
 		CHECK_EQUAL( 0, str->utf8_size(-2, 3));
@@ -200,19 +179,17 @@ SUITE (BString)
 	{
 		static char *expected_strings[] = {"", "Lor", "em ", "ip", "sum d", "olo", "", "r si", "t amet."};
 		
-		BString  *str = new BString("/Lor/em /ip/sum d/olo//r si/t amet.");
-		BString **sections = str->split('/');
+		BString str("/Lor/em /ip/sum d/olo//r si/t amet.");
+
+		BArray<BString> fragments;
+		str.split("/", &fragments);
 		
 		char **expected = expected_strings;
 		
-		for (BString **s = sections; *s != NULL; s++)
+		for (uint32 i = 0; i < fragments.length(); i++)
 		{
-			CHECK_EQUAL((*s)->c_str(), *expected);
-			expected++;
+			CHECK(fragments.get(i).equals(expected_strings[i]));
 		}
-		
-		BString::tuple_free(sections);
-		delete str;
 	}
 	
 	TEST (append)	// Note: we don't test inlines because they're just wrappers around the main function
@@ -229,7 +206,7 @@ SUITE (BString)
 
 	TEST (prepend)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
 		str->prepend(test_str1, sizeof(test_str1) - 1);
 		
@@ -303,7 +280,7 @@ SUITE (BString)
 
 	TEST (uppercase_2)
 	{
-		BString *str   = new BString (test_str2, true);
+		BString *str   = new BString (test_str2);
 		BString *upper = str->uppercase();
 		
 		CHECK_EQUAL("A✓♞☭€❄1♫", upper->c_str());
@@ -325,7 +302,7 @@ SUITE (BString)
 
 	TEST (lowercase_2)
 	{
-		BString *str   = new BString (test_str2, true);
+		BString *str   = new BString (test_str2);
 		BString *lower = str->lowercase();
 		
 		CHECK_EQUAL("a✓♞☭€❄1♫", lower->c_str());
@@ -367,8 +344,8 @@ SUITE (BString)
 	
 	TEST (remove)
 	{
-		BString *str  = new BString (test_str2, true);
-		BString *orig = new BString (test_str2, true);
+		BString *str  = new BString (test_str2);
+		BString *orig = new BString (test_str2);
 		
 		str->remove(1, 5);
 		
@@ -381,7 +358,7 @@ SUITE (BString)
 
 	TEST (remove_ZeroLength)
 	{
-		BString *str = new BString (test_str2, true);
+		BString *str = new BString (test_str2);
 		
 		str->remove(1, 0);
 		
@@ -392,7 +369,7 @@ SUITE (BString)
 
 	TEST (remove_TooLong)
 	{
-		BString *str = new BString (test_str2, true);
+		BString *str = new BString (test_str2);
 		
 		str->remove(1, 40);
 		
@@ -462,14 +439,15 @@ SUITE (BString)
 		CHECK(BString::equals(&str, ""));
 	}
 
+#ifndef NO_UTF8
 	TEST (resize_UTF8)
 	{
 		BString str("амплитуда");
-		str.utf8 = true;
 
 		str.resize(2, -3);
 		CHECK(BString::equals(&str, "плит"));
 	}
+#endif
 
 	TEST (count)
 	{
@@ -503,7 +481,7 @@ SUITE (BString)
 	
 	TEST (count_chars_UTF8)
 	{
-		BString *str = new BString ("abcabcc♞♞❄♞♫", true);
+		BString *str = new BString ("abcabcc♞♞❄♞♫");
 		
 		CHECK(str->count_chars("cb♞z") == 8);
 		CHECK(str->count_chars("")     == 0);
@@ -538,7 +516,7 @@ SUITE (BString)
 
 	TEST (index_of_UTF8)
 	{
-		BString *str = new BString ("Санкт-Петербургская классическая гимназия 610", true);
+		BString *str = new BString ("Санкт-Петербургская классическая гимназия 610");
 		
 		CHECK(str->index_of_utf8("С")  ==  0);
 		CHECK(str->index_of_utf8("я")  == 18);
@@ -578,7 +556,7 @@ SUITE (BString)
 
 	TEST (offset_of_UTF8)
 	{
-		BString *str = new BString ("Санкт-Петербургская классическая гимназия 610", true);
+		BString *str = new BString ("Санкт-Петербургская классическая гимназия 610");
 		
 		CHECK(str->offset_of_utf8("С")  ==  0);
 		CHECK(str->offset_of_utf8("я")  == 35);
@@ -603,7 +581,7 @@ SUITE (BString)
 	
 	TEST (offset_of_ptr)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
 		CHECK_EQUAL(3, str->offset_of_ptr(str->c_str() + 7));
 		CHECK_EQUAL(0, str->offset_of_ptr(str->c_str()));
@@ -629,7 +607,7 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str1);
 		
-		CHECK(*(str->char_at(16)) == '\0');
+		CHECK(str->char_at(16) == NULL);
 		
 		delete str;
 	}
@@ -647,14 +625,14 @@ SUITE (BString)
 	{
 		BString *str = new BString(test_str1);
 		
-		CHECK(*(str->char_at(-44)) == '\0');
+		CHECK(str->char_at(-44) == NULL);
 		
 		delete str;
 	}
 
 	TEST (char_at_UTF8)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
 		CHECK(utf8_charcmp(str->char_at(4), "€"));
 		
@@ -663,16 +641,16 @@ SUITE (BString)
 
 	TEST (char_at_UF8_OutOfBounds)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
-		CHECK(*(str->char_at(16)) == '\0');
+		CHECK(str->char_at(16) == NULL);
 		
 		delete str;
 	}
 
 	TEST (char_at_UF8_Negative)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
 		CHECK(utf8_charcmp(str->char_at(-1), "♫"));
 		
@@ -681,18 +659,18 @@ SUITE (BString)
 
 	TEST (char_at_UF8_NegativeOutOfBounds)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
-		CHECK(*(str->char_at(-44)) == '\0');
+		CHECK(str->char_at(-144) == NULL);
 		
 		delete str;
 	}
 	
 	TEST (c_str)
 	{
-		BString *str = new BString(test_str2, true);
+		BString *str = new BString(test_str2);
 		
-		REQUIRE CHECK(! strcmp(str->c_str(), test_str2));
+		/*REQUIRE*/ CHECK(! strcmp(str->c_str(), test_str2));
 		
 		delete str;
 	}

@@ -1,5 +1,10 @@
 #include <string.h>
 
+inline const char *BString :: set(const char *str)
+{
+	return this->set(str, strlen(str));
+}
+
 inline bool BString :: append(char *str)
 {
 	return this->append(str, strlen(str));
@@ -57,5 +62,6 @@ inline void BString :: resize(int32 start, int32 end, char fill_char)
 
 inline const char *BString :: c_str()
 {
-	return (const char *) (this->string ? this->string : "");
+//	return (const char *) (this->string ? this->string : "");
+	return (const char *) this->string;
 }

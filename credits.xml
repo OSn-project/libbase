@@ -1,6 +1,4 @@
-<credits>
+<credits license="Apache-2.0" year-from="2018" year-to="2019">
 	<contributor github="albert-tomanek" email="albert.tomanek@gmail.com">Albert Tomanek</contributor>
-	<file path="include/byteorder.h">
-		<contributor github="Sarvadi">Lane Kulak</contributor>
-	</file>
+	<project name="SDL" license="Zlib" website="http://libsdl.org/"/>
 </credits>

@@ -31,13 +31,12 @@ SUITE(BMemArray)
 	{
 		MockRepository mocks;
 		
-		mocks.ExpectCallFunc(calloc).Return((void *) 0x1234);
+		mocks.ExpectCallFunc(malloc).Return((void *) 0x1234);
 		
-		BMemArray *arr = new BMemArray(3, 17);
+		BMemArray *arr = new BMemArray(3);
 		
 		CHECK(arr->*member<MEMARRAY_item_size>::value == 3);		
 		CHECK(arr->*member<MEMARRAY_m_len>::value == 0);
-		CHECK(arr->*member<MEMARRAY_capacity>::value == 17);
 		
 		CHECK(arr->*member<MEMARRAY_data>::value == (uint8 *) 0x1234);
 		
@@ -75,7 +74,7 @@ SUITE(BMemArray)
 	
 	TEST (from_static)
 	{
-		REQUIRE {
+		/*REQUIRE*/ {
 			int32 test_data[] = {0, 1, 2, 3};
 			BMemArray *arr = BMemArray::from_static(&test_data, 4, sizeof(int32));
 			
@@ -92,7 +91,7 @@ SUITE(BMemArray)
 	
 	TEST (grow)
 	{
-		BMemArray arr(sizeof(void *), 1);
+		BMemArray arr(sizeof(void *));
 		
 		uint32 old_MEMARRAY_capacity = arr.*member<MEMARRAY_capacity>::value;
 		uint32 new_MEMARRAY_capacity;

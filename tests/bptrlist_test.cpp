@@ -87,7 +87,7 @@ SUITE(BPtrList)
 
 		BVoidPtrList *list = test_list_new(&tmp);
 
-		REQUIRE
+		/*REQUIRE*/
 		{
 			CHECK (tmp[3]->item == (void *) 3);
 			
@@ -105,7 +105,7 @@ SUITE(BPtrList)
 	{
 		BVoidPtrList list;
 		
-		REQUIRE
+		/*REQUIRE*/
 		{
 			CHECK(list.*member<m_length>::value == 0);
 			

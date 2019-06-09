@@ -5,12 +5,6 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#define b_ceil(N, D) (1 + ((N - 1) / D))
-
-#define b_max(A, B) ((A) > (B) ? (A) : (B))
-#define b_min(A, B) ((A) < (B) ? (A) : (B))
-#define b_abs(A) ((A) > 0 ? (A) : -(A))
-
 #ifdef __cplusplus
 extern "C" {
 #endif
