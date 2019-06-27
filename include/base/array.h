@@ -7,8 +7,8 @@
 // DO NOT USE WITH CLASSES THAT YOU HAVE POINTERS TO. Classes are COPIED into the array and so their address will change.
 // The addresses of elements WILL change as items are inserted and removed.
 //https://oopscenities.net/2011/04/30/c-inheritance-on-template-specialization/
-#ifndef __BASE_ARRAY_H__
-#define __BASE_ARRAY_H__
+#ifndef BARRAY_H_
+#define BARRAY_H_
 
 #include <stddef.h>
 #include <osndef.h>

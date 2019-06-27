@@ -1,5 +1,5 @@
-#ifndef BASE_LIST_H_
-#define BASE_LIST_H_
+#ifndef BLIST_H_
+#define BLIST_H_
 
 #include <osndef.h>
 //#include "nodelist.h"
