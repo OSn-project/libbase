@@ -65,17 +65,42 @@ SUITE(BNodeList)
 
 	TEST(insert)
 	{
-		MockRepository mocks;
 		BListNode **tmp;
 		test_nodes_new(&tmp);
 		BNodeList list(tmp[0]);
 
 		BListNode new_node;
-		mocks.ExpectCallFunc(BListNode::insert).With(&new_node, tmp[2]);
 		list.insert(&new_node, 3);
+
+		CHECK(new_node.prev == tmp[2]);
+		CHECK(new_node.next == tmp[3]);
+		CHECK(tmp[2]->next == &new_node);
+		CHECK(tmp[3]->prev == &new_node);
 
 		CHECK(list.length == 5);
 
 		test_nodes_free(&tmp);
+	}
+
+	TEST(insert_start)
+	{
+		MockRepository mocks;
+		BListNode **tmp;
+		test_nodes_new(&tmp);
+		BNodeList list(tmp[0]);
+
+		BListNode new_node = {NULL, NULL};
+		list.insert(&new_node, 0);
+
+		CHECK(new_node.next == tmp[0]);
+		CHECK(tmp[0]->prev == &new_node);
+
+		CHECK(list.length == 5);
+
+		test_nodes_free(&tmp);
+	}
+
+	TEST(insert_outOfBounds)	// TODO
+	{
 	}
 }

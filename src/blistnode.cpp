@@ -20,9 +20,9 @@ BListNode *BListNode :: first(BListNode *node)
 	return node;
 }
 
-size_t BListNode :: preceding(BListNode *node)
+uint32 BListNode :: preceding(BListNode *node)
 {
-	size_t count;
+	uint32 count;
 
 	for (count = 0; node->prev != NULL; node = node->prev)
 	{
@@ -32,9 +32,9 @@ size_t BListNode :: preceding(BListNode *node)
 	return count;
 }
 
-size_t BListNode :: following(BListNode *node)
+uint32 BListNode :: following(BListNode *node)
 {
-	size_t count;
+	uint32 count;
 
 	for (count = 0; node->next != NULL; node = node->next)
 	{
@@ -60,16 +60,15 @@ void BListNode :: foreach (BListNode *first, void (*func)(BListNode *node, void 
 	}
 }
 
-void BListNode :: insert(BListNode *add, BListNode *node)
+BListNode *BListNode :: insert(BListNode *add, BListNode *current)
 {
-	/* Change the new node's pointers	*
-	 * to point to its neighbors.		*/
-	add->next = node;
-	add->prev = node->prev;		// Works for NULL too
-	
+	/* Insert `add` before `node` */
+	add->next = current;
+	add->prev = current->prev;		// Works when `current->prev` is NULL
+
 	if (add->prev)
 		add->prev->next = add;
-	node->prev = add;
+	current->prev = add;
 }
 
 void BListNode :: append(BListNode *new_last, BListNode **list)

@@ -57,11 +57,23 @@ private:
 };
 
 template <typename T>
-class BArrayBase : public BMemArray
+class BArray : public BMemArray
 {
 public:
-	inline BArrayBase() : BMemArray(sizeof(T))
+	
+	inline BArray() : BMemArray(sizeof(T))
 	{
+	}
+	
+	inline ~BArray()
+	{
+		/* Call the destructor on all elements in the array.	*
+		 * Does nothing for built-in types.						*/
+
+		for (T *current = (T *) this->data; current < (T *) this->data + this->m_len; current++)
+		{
+			current->~T();
+		}
 	}
 
 	inline T& get(uint32 index)
@@ -69,36 +81,19 @@ public:
 		return ((T *) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
 	}
 
-	inline void remove(uint32 index)
-	{
-		this->BMemArray::remove(index);
-	}
-};
-
-/* This template is intended for non-pointer data types. */
-
-template <typename T>
-class BArray : public BArrayBase<T>
-{
-public:
-	
-	BArray() : BArrayBase<T>()
-	{
-	};
-	
-//	inline T& get(uint32 index)
-//	{
-//		return ((T *) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
-//	}
-
 	inline void add(T const& item)		// This is a const reference. It means that we can be passed literals, ie. array->add(5);
 	{
-		this->BMemArray::add((void *) item);
+		this->BMemArray::add((void *) &item);
 	}
 		
 	inline T *add_new()
 	{
 		return (T *) this->BMemArray::add_new();
+	}
+
+	inline void remove(uint32 index)
+	{
+		this->BMemArray::remove(index);
 	}
 
 	inline void foreach(void (*iter_func)(T& item))
@@ -121,57 +116,6 @@ public:
 	inline T& find(bool (*find_func)(T& item, C data), C data)
 	{
 		return (T) this->BMemArray::find((bool (*)(void *, void *)) find_func, (void *) data);
-	}
-};
-
-/* This template contains code specialized for pointer types */
-
-template <typename T>
-class BArray <T *> : public BArrayBase<T *>
-{
-public:
-
-	BArray() : BArrayBase<T *>()
-	{
-	};
-
-//	inline T get(uint32 index)
-//	{
-//		return ((T *) this->data)[index];
-//	}
-
-	inline void add(T *item)
-	{
-		this->BMemArray::add((void *) &item);
-	}
-
-	inline T *add_new()
-	{
-		return (T *) this->BMemArray::add_new();
-	}
-
-	inline void foreach(void (*iter_func)(T& item))
-	{
-		this->BMemArray::foreach((void (*)(void *)) iter_func);
-	}
-
-	template <typename C>		// Template for the custom argument. Remember that it is cast to `void *`.
-	inline void foreach(void (*iter_func)(T& item, C data), C data)
-	{
-		this->BMemArray::foreach((void (*)(void *, void *)) iter_func, (void *) data);
-	}
-
-	inline T *find(bool (*find_func)(T **item))
-	{
-		T **found = (T **) this->find((bool (*)(void *)) find_func);
-		return found ? *found : NULL;	// The function returns a pointer to the found item, which in this case would be a pointer to a pointer; so we need to de-reference it.
-	}
-
-	template <typename C>		// Template for the custom argument. Remember that it is cast to `void *`.
-	inline T *find(bool (*find_func)(T **item, C data), C data)
-	{
-		T **found = (T **) this->BMemArray::find((bool (*)(void *, void *)) find_func, (void *) data);
-		return found ? *found : NULL;
 	}
 };
 

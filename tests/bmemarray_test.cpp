@@ -29,21 +29,29 @@ SUITE(BMemArray)
 {
 	TEST (Constructor)
 	{
-		MockRepository mocks;
+		BMemArray arr(3);
 		
-		mocks.ExpectCallFunc(malloc).Return((void *) 0x1234);
-		
-		BMemArray *arr = new BMemArray(3);
-		
-		CHECK(arr->*member<MEMARRAY_item_size>::value == 3);		
-		CHECK(arr->*member<MEMARRAY_m_len>::value == 0);
-		
-		CHECK(arr->*member<MEMARRAY_data>::value == (uint8 *) 0x1234);
-		
-		mocks.ExpectCallFunc(free).With((void *) 0x1234);
-		delete arr;
+		CHECK(arr.*member<MEMARRAY_item_size>::value == 3);
+		CHECK(arr.*member<MEMARRAY_m_len>::value == 0);
 	}
 	
+	TEST (destructor)
+	{
+		MockRepository mocks;
+		void *my_mem = malloc(sizeof(int));
+
+		mocks.OnCallFunc(malloc).Return(my_mem);
+		mocks.OnCallFunc(realloc).Return(my_mem);
+
+		BMemArray *arr = new BMemArray();
+
+		int n = 5;
+		arr->add((void *) &n);
+
+		mocks.ExpectCallFunc(free).With(my_mem);
+		free(my_mem);
+	}
+
 	TEST (add)
 	{
 		BMemArray arr(sizeof(uint16));
@@ -52,6 +60,8 @@ SUITE(BMemArray)
 		
 		arr.add(&test_data[0]);	// Give it the address of the value we want to copy
 		CHECK(arr.*member<MEMARRAY_m_len>::value == 1);
+
+		CHECK(arr.*member<MEMARRAY_capacity>::value >= arr.*member<MEMARRAY_m_len>::value);
 
 		arr.add(&test_data[1]);
 		CHECK(arr.*member<MEMARRAY_m_len>::value == 2);

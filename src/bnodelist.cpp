@@ -38,8 +38,15 @@ void BNodeList :: add(BListNode *node)
 
 void BNodeList :: insert(BListNode* item, uint32 index)
 {
-	BListNode *preceding = BListNode::get(this->first, index);
-	BListNode::insert(item, preceding);
+	if (index == 0)
+	{
+		this->first = BListNode::insert(item, this->first);
+	}
+	else
+	{
+		BListNode *preceding = BListNode::get(this->first, index);
+		BListNode::insert(item, preceding);
+	}
 
 	this->length++;
 }

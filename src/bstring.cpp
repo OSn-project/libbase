@@ -408,10 +408,10 @@ void BString :: remove_char(char chr)
 
 BString *BString :: resize(int32 start, int32 end, BString *out, char fill_char)
 {
-	uint32 preceding = -b_min(start, 0);
-	uint32 lclip     =  b_max(start, 0);
-	uint32 rclip     = -b_min(end, 0);
-	uint32 following =  b_max(end, 0);
+	size_t preceding = -b_min(start, 0);
+	size_t lclip     =  b_max(start, 0);
+	size_t rclip     = -b_min(end, 0);
+	size_t following =  b_max(end, 0);
 
 	if (lclip + rclip >= this->m_size)
 	{
@@ -422,19 +422,19 @@ BString *BString :: resize(int32 start, int32 end, BString *out, char fill_char)
 		size_t final_size = preceding + (this->m_size - lclip - rclip) + following;
 
 		char *resized = (char *) malloc(final_size + 1);
-		char *tmp = resized;
+		char *insert_pos = resized;
 
 		/* Compose the resulting string */
-		memset(tmp, fill_char, preceding);	// Preceding fillers
-		tmp += preceding;
+		memset(insert_pos, fill_char, preceding);	// Preceding fillers
+		insert_pos += preceding;
 
-		memcpy(tmp, this->string + lclip, this->m_size - lclip - rclip);
-		tmp += this->m_size - lclip - rclip;
+		memcpy(insert_pos, this->string + lclip, this->m_size - lclip - rclip);
+		insert_pos += this->m_size - lclip - rclip;
 
-		memset(tmp, fill_char, following);
-		tmp += following;
+		memset(insert_pos, fill_char, following);
+		insert_pos += following;
 
-		*tmp = '\0';
+		*insert_pos = '\0';
 
 		out->switch_to(resized, final_size);
 	}

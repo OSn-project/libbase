@@ -32,6 +32,9 @@ public:
 	inline const char *set(const char *str);				// Returns the pointer that was handed to it. Also NULL if allocation failed. Passing null pointer does a no-op.
 	const char        *set(const char *str, size_t len);
 	const BString     *set(const BString *str);
+	char *switch_to(char *str);					// Take ownership of the given malloced string buffer
+	char *switch_to(char *str, size_t size);
+	// void take_ownership(BString *bstr);		// Take ownership of the given BString's buffer and set the source's pointer to NULL.
 
 	int32 length();			// This isn't size_t because otherwise we couldn't do things like -(str->length()) without casting.
 	
@@ -92,10 +95,6 @@ public:
 	 * ::insert() and ::remove() because they reallocate the buffer.								*/
 
 	inline const char *c_str();
-
-	char *switch_to(char *str);					// Take ownership of the given malloced string buffer
-	char *switch_to(char *str, size_t size);
-	// void take_ownership(BString *bstr);		// Take ownership of the given BString's buffer and set the source's pointer to NULL.
 
 	/* File access */
 	static BString *read_file(const char *path);
