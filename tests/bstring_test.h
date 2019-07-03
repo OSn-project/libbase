@@ -1,5 +1,5 @@
-#ifndef __BSTRING_TEST_H__
-#define __BSTRING_TEST_H__
+#ifndef __BSTRING_TEST_H_
+#define __BSTRING_TEST_H_
 
 #include "bdefs.h"
 #include "bstring.h"

@@ -5,17 +5,17 @@
 #include <HippoMocks/hippomocks.h>
 #include "privablic.h"
 
-#include <base/nodelist.h>
+#include <base/list.h>
 #include "blistnode_helpers.h"
 
-SUITE(BNodeList)
+SUITE(BBaseList)
 {
 	TEST(constructor)
 	{
-		BNodeList list;
+		BBaseList list;
 		
-		CHECK(list.first  == NULL);
-		CHECK(list.length == 0);
+		CHECK(list.m_first  == NULL);
+		CHECK(list.m_length == 0);
 	}
 	
 	TEST(constructor_WithInitial)
@@ -23,10 +23,10 @@ SUITE(BNodeList)
 		BListNode **tmp;
 		test_nodes_new(&tmp);
 		
-		BNodeList list(tmp[0]);
+		BBaseList list(tmp[0]);
 		
-		CHECK(list.first  == tmp[0]);
-		CHECK(list.length == TEST_NODES);
+		CHECK(list.m_first  == tmp[0]);
+		CHECK(list.m_length == TEST_NODES);
 		
 		test_nodes_free(&tmp);
 	}
@@ -36,7 +36,7 @@ SUITE(BNodeList)
 		MockRepository mocks;
 		BListNode **tmp;
 		test_nodes_new(&tmp);
-		BNodeList list(tmp[0]);
+		BBaseList list(tmp[0]);
 		
 		{
 			BListNode *rc;
@@ -54,7 +54,7 @@ SUITE(BNodeList)
 	{
 		BListNode **tmp;
 		test_nodes_new(&tmp);
-		BNodeList list(tmp[0]);
+		BBaseList list(tmp[0]);
 
 		CHECK(list.index_of(tmp[2]) == 2);
 		CHECK(list.index_of((BListNode *) 47) == -1);
@@ -67,7 +67,7 @@ SUITE(BNodeList)
 	{
 		BListNode **tmp;
 		test_nodes_new(&tmp);
-		BNodeList list(tmp[0]);
+		BBaseList list(tmp[0]);
 
 		BListNode new_node;
 		list.insert(&new_node, 3);
@@ -77,7 +77,7 @@ SUITE(BNodeList)
 		CHECK(tmp[2]->next == &new_node);
 		CHECK(tmp[3]->prev == &new_node);
 
-		CHECK(list.length == 5);
+		CHECK(list.m_length == 5);
 
 		test_nodes_free(&tmp);
 	}
@@ -87,7 +87,7 @@ SUITE(BNodeList)
 		MockRepository mocks;
 		BListNode **tmp;
 		test_nodes_new(&tmp);
-		BNodeList list(tmp[0]);
+		BBaseList list(tmp[0]);
 
 		BListNode new_node = {NULL, NULL};
 		list.insert(&new_node, 0);
@@ -95,7 +95,7 @@ SUITE(BNodeList)
 		CHECK(new_node.next == tmp[0]);
 		CHECK(tmp[0]->prev == &new_node);
 
-		CHECK(list.length == 5);
+		CHECK(list.m_length == 5);
 
 		test_nodes_free(&tmp);
 	}

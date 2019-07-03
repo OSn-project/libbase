@@ -1,5 +1,5 @@
-#ifndef __BASE_CMDAPP_H__
-#define __BASE_CMDAPP_H__
+#ifndef __BASE_CMDAPP_H_
+#define __BASE_CMDAPP_H_
 
 #include <stdio.h>
 #include <base/string.h>

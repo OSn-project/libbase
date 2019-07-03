@@ -1,5 +1,5 @@
-#ifndef __BPTRLIST_H__
-#define __BPTRLIST_H__
+#ifndef __BPTRLIST_H_
+#define __BPTRLIST_H_
 
 #include "bdefs.h"
 #include "blistnode.h"

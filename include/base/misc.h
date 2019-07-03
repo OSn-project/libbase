@@ -1,5 +1,5 @@
-#ifndef __BASE_MISC_H__
-#define __BASE_MISC_H__
+#ifndef __BASE_MISC_H_
+#define __BASE_MISC_H_
 
 #include <stdbool.h>
 #include <stddef.h>

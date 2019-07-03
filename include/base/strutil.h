@@ -1,5 +1,5 @@
-#ifndef __BSTRUTIL_H__
-#define __BSTRUTIL_H__
+#ifndef __BSTRUTIL_H_
+#define __BSTRUTIL_H_
 
 #include <osndef.h>
 #include <base/string.h>

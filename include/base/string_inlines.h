@@ -2,7 +2,7 @@
 
 inline const char *BString :: set(const char *str)
 {
-	return this->set(str, strlen(str));
+	return this->set(str, str ? strlen(str) : 0);
 }
 
 inline bool BString :: append(char *str)

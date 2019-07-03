@@ -1,8 +1,8 @@
 /* A couple of helper functions used by tests	*
  * dealing with BListNodes.						*/
 
-#ifndef __BLISTNODE_TEST_HELPERS_H__
-#define __BLISTNODE_TEST_HELPERS_H__
+#ifndef __BLISTNODE_TEST_HELPERS_H_
+#define __BLISTNODE_TEST_HELPERS_H_
 
 #include <base/listnode.h>
 

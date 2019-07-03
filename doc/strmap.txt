@@ -1,6 +1,6 @@
-BStrMap
+BDict
 =======
-The `BStrMap` is a dictionary-like container that can store key-value pairs.
+The `BDict` is a dictionary-like container that can store key-value pairs.
 It does not use hashes (it just compares keys instead) for the sake of simplicity,
 and so it may be a bit slower than a hash map.
 

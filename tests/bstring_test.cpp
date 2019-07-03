@@ -194,14 +194,13 @@ SUITE (BString)
 	
 	TEST (append)	// Note: we don't test inlines because they're just wrappers around the main function
 	{
-		BString *str = new BString(test_str1);
+		BString str("");
 		
-		str->append(test_str2, sizeof(test_str2) - 1);
+		str.append("hello", 5);
+		str.append("world", 5);
 		
-		CHECK_EQUAL("Hello, world!a✓♞☭€❄1♫", str->c_str());
-		CHECK_EQUAL(str->*member<BString_m_size>::value, sizeof(test_str1) + sizeof(test_str2) - 1);		// Don't ask me how privablic works but it does magic and that's what I need.
-		
-		delete str;
+		CHECK_EQUAL("helloworld", str.c_str());
+		CHECK_EQUAL(str.*member<BString_m_size>::value, 10);		// Don't ask me how privablic works but it does magic and that's what I need.
 	}
 
 	TEST (prepend)

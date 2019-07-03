@@ -1,5 +1,5 @@
-#ifndef __BREFCOUNTED_H__
-#define __BREFCOUNTED_H__
+#ifndef __BREFCOUNTED_H_
+#define __BREFCOUNTED_H_
 
 #include <stdio.h>
 #include <osndef.h>

@@ -50,7 +50,7 @@ public:
 	/* Working with static arrays */
 	static BMemArray *from_static(void *array, uint32 length, size_t item_size);
 	void write(void *out);
-	void write(void *out, size_t limit);//
+	void write(void *out, size_t limit);
 	
 private:
 	void grow();
@@ -65,7 +65,7 @@ public:
 	{
 	}
 	
-	inline ~BArray()
+	~BArray()
 	{
 		/* Call the destructor on all elements in the array.	*
 		 * Does nothing for built-in types.						*/
@@ -81,6 +81,17 @@ public:
 		return ((T *) this->data)[index];		// It isn't possible to return a NULL-reference to indicate out-of-bounds, so requesting a bad index would just crash.
 	}
 
+	void clear()
+	{
+		/* We need to destruct all objects before we can free them. */
+		for (T *current = (T *) this->data; current < (T *) this->data + this->m_len; current++)
+		{
+			current->~T();
+		}
+
+		this->BMemArray::clear();
+	}
+
 	inline void add(T const& item)		// This is a const reference. It means that we can be passed literals, ie. array->add(5);
 	{
 		this->BMemArray::add((void *) &item);
@@ -93,6 +104,8 @@ public:
 
 	inline void remove(uint32 index)
 	{
+		((T *) this->data)[index].~T();	// Call the destructor first
+
 		this->BMemArray::remove(index);
 	}
 
@@ -109,13 +122,13 @@ public:
 
 	inline T& find(bool (*find_func)(T& item))
 	{
-		return (T) this->find((bool (*)(void *)) find_func);
+		return *((T *) this->find((bool (*)(void *)) find_func));	// Returns void pointer. We need to cast it to a typed pointer before we can dereference it. Once dereferenced it's returned as T&.
 	}
 
 	template <typename C>		// Template for the custom argument. Remember that it is cast to `void *`.
 	inline T& find(bool (*find_func)(T& item, C data), C data)
 	{
-		return (T) this->BMemArray::find((bool (*)(void *, void *)) find_func, (void *) data);
+		return *((T *) this->BMemArray::find((bool (*)(void *, void *)) find_func, (void *) data));
 	}
 };
 

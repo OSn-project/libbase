@@ -9,8 +9,8 @@
  * class which consists exclusively of inline functions that do	*
  * casting.														*/
 
-#ifndef __BASE_PTRLIST_H__
-#define __BASE_PTRLIST_H__
+#ifndef __BASE_PTRLIST_H_
+#define __BASE_PTRLIST_H_
 
 #include <base/listnode.h>
 

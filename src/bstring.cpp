@@ -210,7 +210,7 @@ bool BString :: append(char *str, size_t str_size)
 	
 	memcpy(this->string + this->m_size, str, str_size + 1);		// +1 to copy the null-terminator too.
 	
-	this->m_size = this->m_size + str_size + 1;
+	this->m_size = this->m_size + str_size;
 	
 	return true;
 }

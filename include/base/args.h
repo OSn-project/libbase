@@ -1,5 +1,5 @@
-#ifndef __BASE_ARGS_H__
-#define __BASE_ARGS_H__
+#ifndef __BASE_ARGS_H_
+#define __BASE_ARGS_H_
 
 #include <base/string.h>
 #include <osndef.h>

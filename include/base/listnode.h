@@ -1,5 +1,5 @@
-#ifndef __BASE_LISTNODE_H__
-#define __BASE_LISTNODE_H__
+#ifndef __BASE_LISTNODE_H_
+#define __BASE_LISTNODE_H_
 
 #include <stdlib.h>
 #include "osndef.h"
