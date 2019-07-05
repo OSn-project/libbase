@@ -32,26 +32,28 @@ public:
 	inline const char *set(const char *str);				// Returns the pointer that was handed to it. Also NULL if allocation failed. Passing null pointer does a no-op.
 	const char        *set(const char *str, size_t len);
 	const BString     *set(const BString *str);
-	char *switch_to(char *str);					// Take ownership of the given malloced string buffer
-	char *switch_to(char *str, size_t size);
-	// void take_ownership(BString *bstr);		// Take ownership of the given BString's buffer and set the source's pointer to NULL.
+	char    *own(char *str);					// Take ownership of the given malloced string buffer
+	char    *own(char *str, size_t size);
+	BString *own(BString *src);				// Take ownership of the given BString's buffer and clear the source.
 
 	int32 length();			// This isn't size_t because otherwise we couldn't do things like -(str->length()) without casting.
 	
-	size_t size();								// Returns the size of the string in bytes, excluding the null-terminator. Not guaranteed to be the string's length in characters.
+	size_t size() const;								// Returns the size of the string in bytes, excluding the null-terminator. Not guaranteed to be the string's length in characters.
 	size_t utf8_size(int32 from, int32 to);		// Returns the size of the string between the two indexes in bytes. The character at the end index is excluded (..ize(3, 5) would count characters 3 and 4)
 
 	void split(const char *delims, BArray<BString> *out);
 	
-	bool        append(char *str, size_t str_size);		// str_size = the size in bytes minus the null-terminator (like what strlen returns you)
-	inline bool append(char *str);
-	inline bool append(BString *str);
+	bool        append(const char *str, size_t str_size);		// str_size = the size in bytes minus the null-terminator (like what strlen returns you)
+	inline bool append(const char *str);
+	inline bool append(const BString *str);
 	bool        prepend(char *str, size_t str_size);
 	inline bool prepend(char *str);
 	inline bool prepend(BString *str);
 	bool        insert(char *str, size_t str_size, int32 offset);
 	inline bool insert(char *str, int32 offset);
 	inline bool insert(BString *str, int32 offset);
+	void        overwrite(char *str, int32 offset, int32 length = -1);
+	void        overwrite(BString *str, int32 offset, int32 r_offset = 0, int32 length = -1);	// r_offset = Where to start reading from in the source string.
 	void        append_c(char c);
 	
 	static BString *concat(BString *str1, ...);		// Concatenates the given strings to for a new string. NOTE: Remember to terminate the argument list with NULL.
@@ -83,11 +85,12 @@ public:
 	int32 index_of_utf8 (const char *chr, const char *start = NULL);
 	int32 offset_of(char chr, const char *start = NULL);				// Like ->index_of() but returns offset in bytes instead characters.
 	int32 offset_of_utf8(const char *chr, const char *start = NULL);
+	int32 find(const char *substr, int32 start = 0);
 	
 	const char *next(char chr, const char *start = NULL);		// Returns a pointer to the next occurence of the given character in the string, starting from `start` or the beginning of the string of not given.
 	
 	int32 offset_of_ptr(const char *str);	// Returns the index in characters of the given pointer in the string. Returns -1 if it points outside of the string.
-	const char *char_at(int32 index);		// NULL if out of bounds
+	char *char_at(int32 index);		// NULL if out of bounds
 	
 	/* Returns a pointer to the internal buffer. It is recommended that you strdup() this.			*
 	 * May be NULL, for example after memory errors.												*
@@ -108,6 +111,7 @@ public:
 public:
 	/* Friends */
 	friend int sprintf(BString *str, const char *format, ...);
+	friend class BStrUtil;
 };
 
 /* Overload sprintf to allow formatted printing to BStrings */

@@ -9,7 +9,7 @@ BDict :: BDict(uint32 init_size)
 	this->allocated = init_size;
 	this->used = 0;
 	
-	this->entries = (BDict::Entry *) calloc(init_size, sizeof(BDict::Entry));	// This automatically sets all ->name pointers to NULL, marking the pairs as free.
+	this->entries = (BDictEntry *) calloc(init_size, sizeof(BDictEntry));	// This automatically sets all ->name pointers to NULL, marking the pairs as free.
 }
 
 BDict :: ~BDict()
@@ -19,7 +19,7 @@ BDict :: ~BDict()
 
 void BDict :: add(const char *name, void *data)
 {
-	Entry *pair = this->new_entry();
+	BDictEntry *pair = this->new_entry();
 	
 	pair->name = strdup(name);
 	pair->data = data;
@@ -29,7 +29,7 @@ void BDict :: add(const char *name, void *data)
 
 bool BDict :: set(const char *name, void *data)
 {
-	Entry *pair = this->find_entry(name);
+	BDictEntry *pair = this->find_entry(name);
 	
 	if (pair == NULL)
 	{
@@ -44,31 +44,53 @@ bool BDict :: set(const char *name, void *data)
 
 void *BDict :: get(const char *name)
 {
-	Entry *pair = this->find_entry(name);
+	BDictEntry *pair = this->find_entry(name);
 	
 	if (pair == NULL)
-	{
 		return NULL;
-	}
 	else
-	{
 		return pair->data;
+}
+
+void BDict :: foreach(void (*iter_func)(const char *key, void *value))
+{
+	for (uint32 i = 0; i < this->allocated; i++)
+	{
+		BDictEntry *pair = &this->entries[i];
+
+		if (pair->name != NULL)
+		{
+			iter_func(pair->name, pair->data);
+		}
 	}
 }
 
-BDict::Entry *BDict :: grow()
+void BDict :: foreach(void (*iter_func)(const char *key, void *value, void *data), void *data)
+{
+	for (uint32 i = 0; i < this->allocated; i++)
+	{
+		BDictEntry *pair = &this->entries[i];
+
+		if (pair->name != NULL)
+		{
+			iter_func(pair->name, pair->data, data);
+		}
+	}
+}
+
+BDictEntry *BDict :: grow()
 {
 	uint32 new_size = ((this->allocated * 3) / 2) + 1;		// An array of size 1 would stay at 1 without the +1 bit.
 	
 	/* Grow the array */
-	this->entries = (Entry *) realloc(this->entries, new_size * sizeof(Entry));
+	this->entries = (BDictEntry *) realloc(this->entries, new_size * sizeof(BDictEntry));
 	
 	/* Mark the new pairs as free */
-	Entry *new_pairs = &this->entries[this->allocated];	// The start of the newly allocated pairs
+	BDictEntry *new_pairs = &this->entries[this->allocated];	// The start of the newly allocated pairs
 	
-	for (Entry *current = new_pairs; current < &this->entries[new_size]; current++)
+	for (BDictEntry *current = new_pairs; current < &this->entries[new_size]; current++)
 	{
-		Entry::mark_free(current);
+		BDictEntry::mark_free(current);
 	}
 	
 	/* Change the stored array length */
@@ -77,7 +99,7 @@ BDict::Entry *BDict :: grow()
 	return new_pairs;
 }
 
-BDict::Entry *BDict :: new_entry()
+BDictEntry *BDict :: new_entry()
 {
 	if (this->used == this->allocated)
 	{
@@ -87,15 +109,15 @@ BDict::Entry *BDict :: new_entry()
 	else
 	{
 		/* Find a free pair */
-		return Entry::next_free(this->entries, this->allocated);
+		return BDictEntry::next_free(this->entries, this->allocated);
 	}
 }
 
-BDict::Entry *BDict :: find_entry(const char *name)
+BDictEntry *BDict :: find_entry(const char *name)
 {
 	for (uint32 i = 0; i < this->allocated; i++)
 	{
-		Entry *pair = &this->entries[i];
+		BDictEntry *pair = &this->entries[i];
 		
 		if (streq(pair->name, name))
 		{
@@ -106,7 +128,7 @@ BDict::Entry *BDict :: find_entry(const char *name)
 	return NULL;
 }
 
-BDict::Entry *BDict::Entry :: next_free(BDict::Entry *pairs, uint32 allocated)	// Lord this is messy
+BDictEntry *BDictEntry :: next_free(BDictEntry *pairs, uint32 allocated)	// Lord this is messy
 {
 	for (uint32 i = 0; i < allocated; i++)
 	{
@@ -117,7 +139,7 @@ BDict::Entry *BDict::Entry :: next_free(BDict::Entry *pairs, uint32 allocated)	/
 	return NULL;
 }
 
-void BDict::Entry :: mark_free(BDict::Entry *pair)
+void BDictEntry :: mark_free(BDictEntry *pair)
 {
 	pair->name = NULL;
 }

@@ -5,12 +5,12 @@ inline const char *BString :: set(const char *str)
 	return this->set(str, str ? strlen(str) : 0);
 }
 
-inline bool BString :: append(char *str)
+inline bool BString :: append(const char *str)
 {
 	return this->append(str, strlen(str));
 }
 
-inline bool BString :: append(BString *str)
+inline bool BString :: append(const BString *str)
 {
 	return this->append(str->string, str->m_size);
 }

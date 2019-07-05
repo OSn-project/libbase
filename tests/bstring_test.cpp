@@ -125,15 +125,13 @@ SUITE (BString)
 
 	TEST (length)
 	{
-		BString *str = new BString(test_str2);
+		BString str("abcdef\0ghij♫kl", 16);		// BStrings may contain null bytes
 		
 #ifdef NO_UTF8
-		CHECK_EQUAL(sizeof(test_str2) - 1, str->length());
+		CHECK_EQUAL(str.length(), 16);
 #else
-		CHECK_EQUAL(test_str2_length, str->length());
+		CHECK_EQUAL(str.length(), 14);
 #endif
-		
-		delete str;
 	}
 
 	TEST (length_EmptyString)
@@ -238,6 +236,11 @@ SUITE (BString)
 		delete str;
 	}
 	
+	TEST (overwrite)
+	{
+
+	}
+
 	TEST (append_c)
 	{
 		BString str;
@@ -591,76 +594,28 @@ SUITE (BString)
 		delete str;
 	}
 
+	TEST (find)
+	{
+		BString str1("antarctica");
+
+		CHECK(str1.find("a") == 0);
+		CHECK(str1.find("a", -2) == 9);
+
+		BString str2("Санкт-Петербургская классическая гимназия");
+		CHECK(str2.find("ая") == 17);
+		CHECK(str2.find("ая", 18) == 30);
+	}
+
 	TEST (char_at)
 	{
-		BString *str = new BString(test_str1);
+		BString str("qwert\0yuiяop", 13);
 		
-		CHECK_EQUAL(*(str->char_at(4)), 'o');
-		
-		delete str;
-	}
-
-	TEST (char_at_OutOfBounds)
-	{
-		BString *str = new BString(test_str1);
-		
-		CHECK(str->char_at(16) == NULL);
-		
-		delete str;
-	}
-
-	TEST (char_at_Negative)
-	{
-		BString *str = new BString(test_str1);
-		
-		CHECK_EQUAL(*(str->char_at(-1)), '!');
-		
-		delete str;
-	}
-
-	TEST (char_at_NegativeOutOfBounds)
-	{
-		BString *str = new BString(test_str1);
-		
-		CHECK(str->char_at(-44) == NULL);
-		
-		delete str;
-	}
-
-	TEST (char_at_UTF8)
-	{
-		BString *str = new BString(test_str2);
-		
-		CHECK(utf8_charcmp(str->char_at(4), "€"));
-		
-		delete str;
-	}
-
-	TEST (char_at_UF8_OutOfBounds)
-	{
-		BString *str = new BString(test_str2);
-		
-		CHECK(str->char_at(16) == NULL);
-		
-		delete str;
-	}
-
-	TEST (char_at_UF8_Negative)
-	{
-		BString *str = new BString(test_str2);
-		
-		CHECK(utf8_charcmp(str->char_at(-1), "♫"));
-		
-		delete str;
-	}
-
-	TEST (char_at_UF8_NegativeOutOfBounds)
-	{
-		BString *str = new BString(test_str2);
-		
-		CHECK(str->char_at(-144) == NULL);
-		
-		delete str;
+		CHECK_EQUAL(*(str.char_at(3)), 'r');
+		CHECK_EQUAL(*(str.char_at(5)), '\0');
+		CHECK_EQUAL(*(str.char_at(11)), 'p');
+		CHECK_EQUAL(*(str.char_at(-1)), 'p');
+		CHECK(str.char_at(50) == NULL);
+		CHECK(str.char_at(-50) == NULL);
 	}
 	
 	TEST (c_str)
@@ -672,7 +627,7 @@ SUITE (BString)
 		delete str;
 	}
 	
-	TEST (switch_to)
+	TEST (own)
 	{
 		MockRepository mocks;
 
@@ -681,7 +636,7 @@ SUITE (BString)
 
 		//mocks.ExpectCallFunc(free).With(bstr->c_str());
 
-		bstr->switch_to(str);
+		bstr->own(str);
 
 		CHECK(bstr->c_str() == str);
 		CHECK(bstr->*member<BString_m_size>::value == 7);

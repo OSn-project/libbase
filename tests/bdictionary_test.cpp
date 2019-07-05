@@ -10,7 +10,7 @@
 #include <base/misc.h>
 
 /* Private members */
-struct DICTIONARY_entries { typedef BDict::Entry *(BDict::*type); };
+struct DICTIONARY_entries { typedef BDictEntry *(BDict::*type); };
 template class private_member<DICTIONARY_entries, &BDict::entries>;
 
 struct DICTIONARY_allocated { typedef uint32 (BDict::*type); };
@@ -20,10 +20,10 @@ struct DICTIONARY_used { typedef uint32 (BDict::*type); };
 template class private_member<DICTIONARY_used, &BDict::used>;
 
 /* Private methods */
-struct DICTIONARY_grow { typedef BDict::Entry *(BDict::*type)(); };
+struct DICTIONARY_grow { typedef BDictEntry *(BDict::*type)(); };
 template class private_method<DICTIONARY_grow, &BDict::grow>;
 
-struct DICTIONARY_new_entry { typedef BDict::Entry *(BDict::*type)(); };
+struct DICTIONARY_new_entry { typedef BDictEntry *(BDict::*type)(); };
 template class private_method<DICTIONARY_new_entry, &BDict::new_entry>;
 
 SUITE(BDict)
@@ -42,7 +42,7 @@ SUITE(BDict)
 		 * This only copies the first pair into the new memory.					*/
 		void *out_mem = malloc(size);
 		memset(out_mem, 0xff, size);
-		memcpy(out_mem, in_mem, sizeof(BDict::Entry));
+		memcpy(out_mem, in_mem, sizeof(BDictEntry));
 		return out_mem;
 	}
 	
@@ -117,7 +117,7 @@ SUITE(BDict)
 		
 		mocks.OnCallFunc(realloc).Do(dirty_realloc);
 		
-		BDict::Entry *new_entrys = (&dict->*func<DICTIONARY_grow>::ptr)();
+		BDictEntry *new_entrys = (&dict->*func<DICTIONARY_grow>::ptr)();
 		
 		new_allocated = dict.*member<DICTIONARY_allocated>::value;
 		
@@ -133,7 +133,7 @@ SUITE(BDict)
 		{
 			BDict dict1(2);		// We test growing from 1 because (1*3)/2 = 1
 			
-			BDict::Entry *pair = (&dict1->*func<DICTIONARY_new_entry>::ptr)();
+			BDictEntry *pair = (&dict1->*func<DICTIONARY_new_entry>::ptr)();
 			
 			CHECK(	pair == &(dict1.*member<DICTIONARY_entries>::value)[0] ||
 					pair == &(dict1.*member<DICTIONARY_entries>::value)[1]);
@@ -143,10 +143,10 @@ SUITE(BDict)
 		{
 			BDict dict2(4);		// We test growing from 1 because (1*3)/2 = 1
 			dict2.*member<DICTIONARY_used>::value = 4;	// Pretend that all pairs are used
-			memset(dict2.*member<DICTIONARY_entries>::value, 0xff, 4 * sizeof(BDict::Entry));
+			memset(dict2.*member<DICTIONARY_entries>::value, 0xff, 4 * sizeof(BDictEntry));
 			
 			//mocks.ExpectCall(&dict2, BDict::grow);	// Oh well...
-			BDict::Entry *pair = (&dict2->*func<DICTIONARY_new_entry>::ptr)();
+			BDictEntry *pair = (&dict2->*func<DICTIONARY_new_entry>::ptr)();
 			
 			CHECK(pair->name == NULL);
 		}
@@ -154,22 +154,22 @@ SUITE(BDict)
 
 	TEST (Entry_next_free)
 	{
-		BDict::Entry pairs[] = {
+		BDictEntry pairs[] = {
 			{"key1", NULL},
 			{"key2", (void *) 0x1234},
 			{NULL,   (void *) 0x5678},
 			{"key3", (void *) 0x9abc}
 		};
 		
-		CHECK (BDict::Entry::next_free(pairs, 2) == NULL);
-		CHECK (BDict::Entry::next_free(pairs, 4) == &pairs[2]);
+		CHECK (BDictEntry::next_free(pairs, 2) == NULL);
+		CHECK (BDictEntry::next_free(pairs, 4) == &pairs[2]);
 	}
 
 	TEST (Entry_mark_free)
 	{
-		BDict::Entry pair = {(char *) 0x1234, (void *) 0x5678};
+		BDictEntry pair = {(char *) 0x1234, (void *) 0x5678};
 		
-		BDict::Entry::mark_free(&pair);
+		BDictEntry::mark_free(&pair);
 		
 		CHECK (pair.name == NULL);
 	}

@@ -22,8 +22,9 @@ BString :: BString ()
 
 BString :: BString (const char *c_str)
 {
-	this->string = strdup(c_str);
+	if (! c_str) c_str = "";
 
+	this->string = strdup(c_str);
 	this->m_size = strlen(c_str);		// Strlen will return a negative value if the string is longer than INT32_MAX but this is unlikely
 }
 
@@ -38,11 +39,19 @@ BString :: BString (const char *c_str, size_t size)
 
 BString :: BString(const BString *str)
 {
-	this->string = (char *) malloc(str->m_size + 1);
-	memcpy(this->string, str->string, str->m_size);
-	this->string[str->m_size] = '\0';
+	if (str)
+	{
+		this->string = (char *) malloc(str->m_size + 1);
+		memcpy(this->string, str->string, str->m_size);
+		this->string[str->m_size] = '\0';
 
-	this->m_size = str->m_size;
+		this->m_size = str->m_size;
+	}
+	else
+	{
+		this->string = strdup("");
+		this->m_size = 0;
+	}
 }
 
 BString :: BString(const BString& str)
@@ -117,13 +126,21 @@ int32 BString :: length()
 	if (this->string == NULL) return 0;
 	
 #ifndef NO_UTF8
-	return utf8_length(this->string);
+	// We can't use utf8_length() because the string may contain nul bytes.
+	int32 length = 0;
+	for (char *c = this->string; c < this->string + this->m_size;)
+	{
+		c = utf8_nextchar(c);
+		length++;
+	}
+
+	return length;
 #else
 	return this->m_size;
 #endif
 }
 
-size_t BString :: size()
+size_t BString :: size() const
 {
 	return this->m_size;
 }
@@ -198,7 +215,7 @@ void BString :: split(const char *delims, BArray<BString> *out)
 	while (*end != '\0');
 }
 
-bool BString :: append(char *str, size_t str_size)
+bool BString :: append(const char *str, size_t str_size)
 {
 	this->string = (char *) realloc(this->string, (this->m_size + str_size + 1) * sizeof(char));	// Remember that the sizes don't include the null-terminator to make things easier. That's why we +1 at the end.
 	
@@ -258,6 +275,32 @@ bool BString :: insert(char *str, size_t str_size, int32 offset)
 	this->m_size = this->m_size + str_size;
 	
 	return true;
+}
+
+void BString :: overwrite(char *str, int32 offset, int32 length)
+{
+	if (length < 0) length = strlen(str);
+
+	if (offset + length > this->m_size)
+	{
+		this->m_size = offset + length;
+		this->string = (char *) realloc(this->string, this->m_size);
+	}
+
+	memcpy(this->char_at(offset), str, length);
+}
+
+void BString :: overwrite(BString *str, int32 offset, int32 r_offset, int32 length)
+{
+	if (length < 0) length = str->m_size;
+
+	if (offset + length > this->m_size)
+	{
+		this->m_size = offset + length;
+		this->string = (char *) realloc(this->string, this->m_size);
+	}
+
+	memcpy(this->char_at(offset), str->char_at(r_offset), length);
 }
 
 void BString :: append_c(char c)
@@ -339,7 +382,7 @@ BString *BString :: reverse(BString *out)	// FIXME: UTF-8
 		*dest = *src;
 	}
 
-	out->switch_to(reversed, this->m_size);
+	out->own(reversed, this->m_size);
 
 	return out;
 }
@@ -374,8 +417,8 @@ bool BString :: remove(int32 start, int32 length)
 bool BString :: remove(const char *start, const char *end)
 {
 	if (end <= start) return false;
-	if (! (this->string <= start && start < this->string + this->m_size)) return false;
-	if (! (this->string <  end   && end   < this->string + this->m_size)) return false;
+	if (! (this->string <= start && start <  this->string + this->m_size)) return false;
+	if (! (this->string <  end   && end   <= this->string + this->m_size)) return false;
 	
 	memmove((void *) start, (void *) end, this->string + this->m_size - end + 1);	// +1 to copy the null-term too.
 
@@ -436,7 +479,7 @@ BString *BString :: resize(int32 start, int32 end, BString *out, char fill_char)
 
 		*insert_pos = '\0';
 
-		out->switch_to(resized, final_size);
+		out->own(resized, final_size);
 	}
 
 	return out;
@@ -609,6 +652,29 @@ int32 BString :: offset_of_utf8(const char *chr, const char *start)
 	return offset;
 }
 
+int32 BString :: find(const char *substr, int32 start)
+{
+	size_t substr_len = strlen(substr);
+
+	char *current = this->char_at(start);
+	int32 current_idx = start < 0 ? start + this->length() : start;
+
+	if (current_idx < 0) return -1;
+
+	while (current <= this->string + this->m_size - substr_len)
+	{
+		if (strneq(current, substr, substr_len))
+		{
+			return current_idx;
+		}
+
+		current = utf8_nextchar(current);
+		current_idx++;
+	}
+
+	return -1;
+}
+
 const char *BString :: next(char chr, const char *current)
 {
 	if (current == NULL) current = this->string;
@@ -638,23 +704,43 @@ int32 BString :: offset_of_ptr(const char *str)
 	return -1;
 }
 
-const char *BString :: char_at(int32 index)
+char *BString :: char_at(int32 index)
 {
 	if (index < 0) index += this->length();
 	if (index > this->length() || index < 0) return NULL;
 	
 #ifndef NO_UTF8
-	return utf8_char_at(this->string, index);
+	char *c;
+	for (c = this->string; index > 0; index--)	// Again, we can't use utf8_char_at because BStrings may contain null terminators.
+	{
+		c = utf8_nextchar(c);
+	}
+
+	return c;
 #else
 	return &this->string[index];
 #endif
 }
 
-char *BString :: switch_to(char *str)
+char *BString :: own(char *str)
 {
-	return this->switch_to(str, strlen(str));
+	return this->own(str, strlen(str));
 }
-char *BString :: switch_to(char *str, size_t size)
+
+BString *BString :: own(BString *src)
+{
+	free(this->string);
+
+	this->string = src->string;
+	this->m_size = src->m_size;
+
+	src->string = strdup("");
+	src->m_size = 0;
+
+	return this;
+}
+
+char *BString :: own(char *str, size_t size)
 {
 	/* Free current string */
 	free(this->string);
