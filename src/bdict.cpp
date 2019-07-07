@@ -4,7 +4,7 @@
 
 #include <base/misc.h>
 
-BDict :: BDict(uint32 init_size)
+BBaseDict :: BBaseDict(uint32 init_size)
 {
 	this->allocated = init_size;
 	this->used = 0;
@@ -12,12 +12,12 @@ BDict :: BDict(uint32 init_size)
 	this->entries = (BDictEntry *) calloc(init_size, sizeof(BDictEntry));	// This automatically sets all ->name pointers to NULL, marking the pairs as free.
 }
 
-BDict :: ~BDict()
+BBaseDict :: ~BBaseDict()
 {
 	free(this->entries);
 }
 
-void BDict :: add(const char *name, void *data)
+void BBaseDict :: add(const char *name, void *data)
 {
 	BDictEntry *pair = this->new_entry();
 	
@@ -27,7 +27,7 @@ void BDict :: add(const char *name, void *data)
 	this->used++;
 }
 
-bool BDict :: set(const char *name, void *data)
+bool BBaseDict :: set(const char *name, void *data)
 {
 	BDictEntry *pair = this->find_entry(name);
 	
@@ -42,7 +42,7 @@ bool BDict :: set(const char *name, void *data)
 	}
 }
 
-void *BDict :: get(const char *name)
+void *BBaseDict :: get(const char *name)
 {
 	BDictEntry *pair = this->find_entry(name);
 	
@@ -52,7 +52,7 @@ void *BDict :: get(const char *name)
 		return pair->data;
 }
 
-void BDict :: foreach(void (*iter_func)(const char *key, void *value))
+void BBaseDict :: foreach(void (*iter_func)(const char *key, void *value))
 {
 	for (uint32 i = 0; i < this->allocated; i++)
 	{
@@ -65,7 +65,7 @@ void BDict :: foreach(void (*iter_func)(const char *key, void *value))
 	}
 }
 
-void BDict :: foreach(void (*iter_func)(const char *key, void *value, void *data), void *data)
+void BBaseDict :: foreach(void (*iter_func)(const char *key, void *value, void *data), void *data)
 {
 	for (uint32 i = 0; i < this->allocated; i++)
 	{
@@ -78,7 +78,7 @@ void BDict :: foreach(void (*iter_func)(const char *key, void *value, void *data
 	}
 }
 
-BDictEntry *BDict :: grow()
+BDictEntry *BBaseDict :: grow()
 {
 	uint32 new_size = ((this->allocated * 3) / 2) + 1;		// An array of size 1 would stay at 1 without the +1 bit.
 	
@@ -99,7 +99,7 @@ BDictEntry *BDict :: grow()
 	return new_pairs;
 }
 
-BDictEntry *BDict :: new_entry()
+BDictEntry *BBaseDict :: new_entry()
 {
 	if (this->used == this->allocated)
 	{
@@ -113,7 +113,7 @@ BDictEntry *BDict :: new_entry()
 	}
 }
 
-BDictEntry *BDict :: find_entry(const char *name)
+BDictEntry *BBaseDict :: find_entry(const char *name)
 {
 	for (uint32 i = 0; i < this->allocated; i++)
 	{

@@ -5,17 +5,26 @@
 
 #include <osndef.h>
 
-struct BDictEntry;
-
-class BDict
+struct BDictEntry
 {
-private:
+	char *name;		// If the `name` pointer is null, the entry is free to be overwritten.
+	void *data;
+
+	static BDictEntry  *next_free(BDictEntry *pairs, uint32 allocated);		// Gets the next free pair or returns NULL if all pairs are used.
+	static uint32 count_free(BDictEntry *pairs, uint32 allocated);
+
+	static void   mark_free(BDictEntry *pair);
+};
+
+class BBaseDict
+{
+protected:
 	BDictEntry *entries;
 	uint32 allocated, used;
 	
 public:
-	BDict(uint32 init_size = 8);
-	~BDict();
+	BBaseDict(uint32 init_size = 8);
+	~BBaseDict();
 	
 	void   add(const char *name, void *value);
 	bool   set(const char *name, void *value);	// Sets the value of an existing key. Returns false if the key was not found.
@@ -32,16 +41,30 @@ private:
 	BDictEntry *find_entry(const char *name);
 };
 
-struct BDictEntry
-{
-	char *name;		// If the `name` pointer is null, the entry is free to be overwritten.
-	void *data;
+template <typename T> class BDict;
 
-	static BDictEntry  *next_free(BDictEntry *pairs, uint32 allocated);		// Gets the next free pair or returns NULL if all pairs are used.
-	static uint32 count_free(BDictEntry *pairs, uint32 allocated);
-	
-	static void   mark_free(BDictEntry *pair);
+template <typename T>
+class BDict<T *> : public BBaseDict		// <- means we can only store pointer types in the dictionary
+{
+public:
+	inline BDict() : BBaseDict() {}
+
+	inline void add(const char *name, T *value) { this->BBaseDict::add(name, (void *) value); }
+	inline bool set(const char *name, T *value) { return this->BBaseDict::set(name, (void *) value); }
+	inline T   *get(const char *name)           { return (T *) this->BBaseDict::get(name); }
+
+	inline void foreach(void (*iter_func)(const char *key, T *value))
+	{
+		this->BBaseDict::foreach((void (*)(const char *, void *)) iter_func);
+	}
+
+	template <typename C>
+	inline void foreach(void (*iter_func)(const char *key, T *value, C *data), C data)	// Custom data can be passed using the `data` argument. Remember C must be size of a pointer.
+	{
+		this->BBaseDict::foreach((void (*)(const char *, void *, void *)) iter_func, (void *) data);
+	}
 };
+
 // set: overwrites or creates
-// set_..: creates but does not overwrite
+// safe_set..: creates but does not overwrite
 #endif

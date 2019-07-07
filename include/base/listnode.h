@@ -11,6 +11,8 @@ struct BListNode
 	BListNode *next;
 	BListNode *prev;
 
+	BListNode();
+
     static BListNode *last   (BListNode *node);		// Get the last node in the list.
     static BListNode *first  (BListNode *node);		// Get the first node in the list.
     static uint32     preceding(BListNode *node);	// Count the nodes preceding the given one in the list

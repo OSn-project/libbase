@@ -5,6 +5,7 @@
 
 #include "string.h"
 
+template <typename T>
 class BDict;
 
 class BStrUtil
@@ -25,14 +26,21 @@ public:
 	 * stored in the string pointed to by `out`, or the source	*
 	 * string if it is NULL.									*/
 
-	static BString *fill_templ(BString *src, bool (*get_val)(const char *key, void *data, BString *out), const char *t_open, const char *t_close, void *data = NULL, BString *out = NULL);
-	static BString *fill_templ(BString *src, BDict /* const char * */ *values, const char *t_open, const char *t_close, BString *out = NULL);
+	static BString *fill_templ(BString *src, const char *t_open, const char *t_close, bool (*get_val)(const char *key, void *data, BString *out), void *data = NULL, BString *out = NULL);
 
+	/* Template version which allows you to set the type of the callback's custom data argument. */
 	template <typename C>
-	static inline BString *fill_templ(BString *src, bool (*get_val)(const char *key, C data, BString *out), const char *t_open, const char *t_close, C data = NULL, BString *out = NULL)
-	{
-		return BStrUtil::fill_templ(src, (bool (*)(const char *, void *, BString *)) get_val, t_open, t_close, (void *) data, out);
-	}
+	static inline BString *fill_templ(BString *src, const char *t_open, const char *t_close, bool (*get_val)(const char *key, C data, BString *out), C data = NULL, BString *out = NULL);
+
+	/* Convenience wrappers that retrieve values from a dictionary */
+	static BString *fill_templ(BString *src, const char *t_open, const char *t_close, BDict<const char *> *values, BString *out = NULL);
+	static BString *fill_templ(BString *src, const char *t_open, const char *t_close, BDict<BString *> *values, BString *out = NULL);
 };
+
+template <typename C>
+inline BString *BStrUtil :: fill_templ(BString *src, const char *t_open, const char *t_close, bool (*get_val)(const char *key, C data, BString *out), C data, BString *out)
+{
+	return BStrUtil::fill_templ(src, t_open, t_close, (bool (*)(const char *, void *, BString *)) get_val, (void *) data, out);
+}
 
 #endif

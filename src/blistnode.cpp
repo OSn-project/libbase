@@ -1,5 +1,11 @@
 #include <base/listnode.h>
 
+BListNode :: BListNode()
+{
+	this->next = NULL;
+	this->prev = NULL;
+}
+
 BListNode *BListNode :: last (BListNode *node)
 {
 	while (node->next != NULL)

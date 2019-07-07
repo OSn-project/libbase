@@ -15,7 +15,7 @@ template <typename T> class BArray;
 class BString
 {
 protected:
-	char  *string;
+	char  *string;		// May be NULL
 	size_t m_size;		// in bytes, excluding the null-terminator. The number will equal the length in characters as long as the string is ASCII. If the string is UTF8, the length can be obtained by calling ->length() with ->utf8 set to true.
 	
 public:
@@ -31,10 +31,12 @@ public:
 
 	inline const char *set(const char *str);				// Returns the pointer that was handed to it. Also NULL if allocation failed. Passing null pointer does a no-op.
 	const char        *set(const char *str, size_t len);
-	const BString     *set(const BString *str);
-	char    *own(char *str);					// Take ownership of the given malloced string buffer
+	const BString     *set(const BString *str);				// Copy the contents of the given BString into this.
+	char    *own(char *str);					// Take ownership of the given malloced string buffer. Returns the pointer that was handed to it.
 	char    *own(char *str, size_t size);
-	BString *own(BString *src);				// Take ownership of the given BString's buffer and clear the source.
+	BString *own(BString *src);					// Take ownership of the given BString's buffer and clear the source. Returns `this`.
+	void     disown(char **str, size_t *size);	// `size` pointer may be NULL.
+	char    *disown();	// Surrenders the string's buffer and returns the owning pointer to it. Sets BString to empty.
 
 	int32 length();			// This isn't size_t because otherwise we couldn't do things like -(str->length()) without casting.
 	

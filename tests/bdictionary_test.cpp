@@ -10,23 +10,23 @@
 #include <base/misc.h>
 
 /* Private members */
-struct DICTIONARY_entries { typedef BDictEntry *(BDict::*type); };
-template class private_member<DICTIONARY_entries, &BDict::entries>;
+struct DICTIONARY_entries { typedef BDictEntry *(BBaseDict::*type); };
+template class private_member<DICTIONARY_entries, &BBaseDict::entries>;
 
-struct DICTIONARY_allocated { typedef uint32 (BDict::*type); };
-template class private_member<DICTIONARY_allocated, &BDict::allocated>;
+struct DICTIONARY_allocated { typedef uint32 (BBaseDict::*type); };
+template class private_member<DICTIONARY_allocated, &BBaseDict::allocated>;
 
-struct DICTIONARY_used { typedef uint32 (BDict::*type); };
-template class private_member<DICTIONARY_used, &BDict::used>;
+struct DICTIONARY_used { typedef uint32 (BBaseDict::*type); };
+template class private_member<DICTIONARY_used, &BBaseDict::used>;
 
 /* Private methods */
-struct DICTIONARY_grow { typedef BDictEntry *(BDict::*type)(); };
-template class private_method<DICTIONARY_grow, &BDict::grow>;
+struct DICTIONARY_grow { typedef BDictEntry *(BBaseDict::*type)(); };
+template class private_method<DICTIONARY_grow, &BBaseDict::grow>;
 
-struct DICTIONARY_new_entry { typedef BDictEntry *(BDict::*type)(); };
-template class private_method<DICTIONARY_new_entry, &BDict::new_entry>;
+struct DICTIONARY_new_entry { typedef BDictEntry *(BBaseDict::*type)(); };
+template class private_method<DICTIONARY_new_entry, &BBaseDict::new_entry>;
 
-SUITE(BDict)
+SUITE(BBaseDict)
 {
 	void *dirty_malloc(size_t size)
 	{
@@ -53,7 +53,7 @@ SUITE(BDict)
     
 		mocks.OnCallFunc(malloc).Do(dirty_malloc);	// If the pairs array is malloced instead of calloced, return dirty memory to make sure that the pairs are still marked as free.
 		
-		BDict *dict = new BDict(1);
+		BBaseDict *dict = new BBaseDict(1);
 		
 		CHECK(dict->*member<DICTIONARY_allocated>::value == 1);
 		CHECK(dict->*member<DICTIONARY_used>::value == 0);
@@ -67,7 +67,7 @@ SUITE(BDict)
 
 	TEST (add)
 	{
-		BDict dict(1);
+		BBaseDict dict(1);
 		
 		dict.add("key", (void *) 0x76616c75);
 		
@@ -78,7 +78,7 @@ SUITE(BDict)
 	
 	TEST (set)
 	{
-		BDict dict;
+		BBaseDict dict;
 		dict.add("one", (void *) 1);
 		dict.add("two", (void *) 2);
 		dict.add("three", (void *) 3);
@@ -98,7 +98,7 @@ SUITE(BDict)
 
 	TEST (get)
 	{
-		BDict dict;
+		BBaseDict dict;
 		dict.add("one", (void *) 1);
 		dict.add("two", (void *) 2);
 		dict.add("three", (void *) 3);
@@ -110,7 +110,7 @@ SUITE(BDict)
 	TEST (grow)
 	{
 		MockRepository mocks;
-		BDict dict(1);		// We test growing from 1 because (1*3)/2 = 1
+		BBaseDict dict(1);		// We test growing from 1 because (1*3)/2 = 1
 		
 		uint32 old_allocated = dict.*member<DICTIONARY_allocated>::value;
 		uint32 new_allocated;
@@ -131,7 +131,7 @@ SUITE(BDict)
 		
 		/* Existing free pairs */
 		{
-			BDict dict1(2);		// We test growing from 1 because (1*3)/2 = 1
+			BBaseDict dict1(2);		// We test growing from 1 because (1*3)/2 = 1
 			
 			BDictEntry *pair = (&dict1->*func<DICTIONARY_new_entry>::ptr)();
 			
@@ -141,11 +141,11 @@ SUITE(BDict)
 		
 		/* No free pairs */
 		{
-			BDict dict2(4);		// We test growing from 1 because (1*3)/2 = 1
+			BBaseDict dict2(4);		// We test growing from 1 because (1*3)/2 = 1
 			dict2.*member<DICTIONARY_used>::value = 4;	// Pretend that all pairs are used
 			memset(dict2.*member<DICTIONARY_entries>::value, 0xff, 4 * sizeof(BDictEntry));
 			
-			//mocks.ExpectCall(&dict2, BDict::grow);	// Oh well...
+			//mocks.ExpectCall(&dict2, BBaseDict::grow);	// Oh well...
 			BDictEntry *pair = (&dict2->*func<DICTIONARY_new_entry>::ptr)();
 			
 			CHECK(pair->name == NULL);

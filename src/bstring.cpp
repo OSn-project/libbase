@@ -269,10 +269,11 @@ bool BString :: insert(char *str, size_t str_size, int32 offset)
 	char *insert_pos = &this->string[offset];		// Get a pointer to where the string will be inserted.
 #endif
 	
-	memmove(insert_pos + str_size, insert_pos, this->m_size - (insert_pos - this->string) + 1); 		// Create space for the inserted string by shifting the text AFTER the insert position by the length of the string. +1 to shift the null terminator too. We use memmove instead of memcpy because the areas may overlap.
+	memmove(insert_pos + str_size, insert_pos, this->m_size - (insert_pos - this->string)); 		// Create space for the inserted string by shifting the text AFTER the insert position by the length of the string. We use memmove instead of memcpy because the areas may overlap.
 	memcpy(insert_pos, str, str_size);			// Copy the string into the space that we newly created.
 	
 	this->m_size = this->m_size + str_size;
+	this->string[this->m_size] = '\0';	// Terminate string.
 	
 	return true;
 }
@@ -655,6 +656,7 @@ int32 BString :: offset_of_utf8(const char *chr, const char *start)
 int32 BString :: find(const char *substr, int32 start)
 {
 	size_t substr_len = strlen(substr);
+	if (substr_len > this->m_size) return -1;	// No point looking if the needle is bigger than the haystack.
 
 	char *current = this->char_at(start);
 	int32 current_idx = start < 0 ? start + this->length() : start;
@@ -748,6 +750,24 @@ char *BString :: own(char *str, size_t size)
 	this->string = str;
 	this->m_size = size;
 
+	return str;
+}
+
+void BString :: disown(char **str, size_t *size)
+{
+	*str = this->string ? this->string : strdup("");
+
+	if (size != NULL)
+		*size = this->m_size;
+
+	this->string = NULL;
+	this->m_size = 0;
+}
+
+char *BString :: disown()
+{
+	char *str;
+	this->disown(&str, NULL);
 	return str;
 }
 
