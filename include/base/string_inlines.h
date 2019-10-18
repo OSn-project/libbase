@@ -60,7 +60,7 @@ inline void BString :: resize(int32 start, int32 end, char fill_char)
 	this->resize(start, end, this, fill_char);
 }
 
-inline const char *BString :: c_str()
+inline const char *BString :: c_str() const
 {
 //	return (const char *) (this->string ? this->string : "");
 	return (const char *) this->string;

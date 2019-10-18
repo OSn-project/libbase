@@ -1,0 +1,33 @@
+<buildcc name="libbase" default="compile">
+	<preset name="libbase-src" parent="osn-src">
+		<include dir="include/" />
+	</preset>
+
+	<target name="compile">
+		<shared-library compiler="clang++" output="libbase.so">
+			<object lang="cpp" preset="libbase-src" source="src/bmemarray.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/cmdapp.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/btuple.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/bptrlist.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/bstring.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/blist.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/blistnode.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/bargs.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/brefcounted.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/bcommand.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/bstrutil.cpp" />
+			<object lang="cpp" preset="libbase-src" source="src/bdict.cpp" />
+			<object lang="c"   preset="libbase-src" source="src/utf8.c" />
+			<object lang="c"   preset="libbase-src" source="src/misc.c" />
+		</shared-library>
+	</target>
+
+	<target name="clean">
+		<exec>rm src/*.o libbase.so</exec>
+	</target>
+</buildcc>
+
+<!--
+ - Current file path
+ -
+-->

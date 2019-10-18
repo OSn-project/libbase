@@ -38,10 +38,10 @@ public:
 	void     disown(char **str, size_t *size);	// `size` pointer may be NULL.
 	char    *disown();	// Surrenders the string's buffer and returns the owning pointer to it. Sets BString to empty.
 
-	int32 length();			// This isn't size_t because otherwise we couldn't do things like -(str->length()) without casting.
+	int32 length() const;			// This isn't size_t because otherwise we couldn't do things like -(str->length()) without casting.
 	
 	size_t size() const;								// Returns the size of the string in bytes, excluding the null-terminator. Not guaranteed to be the string's length in characters.
-	size_t utf8_size(int32 from, int32 to);		// Returns the size of the string between the two indexes in bytes. The character at the end index is excluded (..ize(3, 5) would count characters 3 and 4)
+	size_t utf8_size(int32 from, int32 to) const;		// Returns the size of the string between the two indexes in bytes. The character at the end index is excluded (..ize(3, 5) would count characters 3 and 4)
 
 	void split(const char *delims, BArray<BString> *out);
 	
@@ -99,7 +99,7 @@ public:
 	 * NOTE: THE ADDRESS RETURNED BY ::c_str() MAY CHANGE with calls to ::append(), ::prepend(),	*
 	 * ::insert() and ::remove() because they reallocate the buffer.								*/
 
-	inline const char *c_str();
+	inline const char *c_str() const;
 
 	/* File access */
 	static BString *read_file(const char *path);
@@ -112,12 +112,13 @@ public:
 		
 public:
 	/* Friends */
-	friend int sprintf(BString *str, const char *format, ...);
+	friend int vsprintf(BString *str, const char *format, va_list ap);
 	friend class BStrUtil;
 };
 
 /* Overload sprintf to allow formatted printing to BStrings */
-int sprintf(BString *str, const char *format, ...) __attribute__ ((format (printf, 2, 3)));		// Print printf-formatted text to a BString. Overwrites the original string if not empty.
+int sprintf (BString *str, const char *format, ...) __attribute__ ((format (printf, 2, 3)));		// Print printf-formatted text to a BString. Overwrites the original string if not empty.
+int vsprintf(BString *str, const char *format, va_list ap);
 
 #include "string_inlines.h"
 #endif

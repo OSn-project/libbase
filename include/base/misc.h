@@ -27,7 +27,7 @@ inline T fread(FILE *file)
 }
 
 template <typename T>
-inline void fwrite(FILE *file, T val)
+inline void fwrite(T val, FILE *file)
 {
 	fwrite(&val, sizeof(T), 1, file);
 }

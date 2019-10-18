@@ -121,7 +121,7 @@ void BString :: clear()
 	this->m_size = 0;
 }
 
-int32 BString :: length()
+int32 BString :: length() const
 {
 	if (this->string == NULL) return 0;
 	
@@ -145,7 +145,7 @@ size_t BString :: size() const
 	return this->m_size;
 }
 
-size_t BString :: utf8_size(int32 from, int32 to)
+size_t BString :: utf8_size(int32 from, int32 to) const
 {
 	if (from < 0) from += this->length();
 	if (to   < 0) to   += this->length();
@@ -882,24 +882,32 @@ void BString :: read_line(FILE *file, BString *str)
 int sprintf(BString *str, const char *format, ...)
 {
 	va_list ap;
-	
+
+	va_start(ap, format);
+	int rc = vsprintf(str, format, ap);
+	va_end(ap);
+
+	return rc;
+}
+
+int vsprintf(BString *str, const char *format, va_list ap)
+{
 	/* Free the current string memory */
 	free(str->string);
-	
+
 	/* Open the string as a file stream;	*
 	 * we need to do this so that the size	*
 	 * is not limited.						*/
 	FILE *fp = open_memstream(&str->string, &str->m_size);
-	
-	va_start(ap, format);
+
 	int rc = vfprintf(fp, format, ap);
-	va_end(ap);
-	
+
 	fflush(fp);
 	fclose(fp);
-	
+
 	return rc;
 }
+
 
 /*-----------------
  *  - \0 compatable strings           yes

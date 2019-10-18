@@ -212,6 +212,9 @@ SUITE (BArray)
 		CHECK(arr->find<const char *>(streq, "avalanche") == &test_data[3]);
 		CHECK(arr->find<const char *>(streq, "xanthan") == NULL);*/
 		
+		BArray <const char *> empty;
+		CHECK(empty.find(beginswithlettera) == NULL);
+
 		delete arr;
 	}
 }
